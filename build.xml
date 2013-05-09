@@ -1,0 +1,41 @@
+<project name="Jingle Bells" default="dist" basedir=".">
+	<description>
+		Builds Jingle Bells, a Jingle jibrary for java.
+	</description>
+	<property name="src" location="src" />
+	<property name="build" location="bin" />
+	<property file="passwords.props" />
+
+	<!-- jars/dependent libraries -->
+	<path id="jars.list">
+		<fileset dir="lib">
+			<include name="*.jar"/>
+		</fileset>
+	</path>
+	<property name="jars" refid="jars.list" />
+
+	<target name="init">
+		<tstamp />
+		<mkdir dir="${build}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac srcdir="${src}" debug="true" debuglevel="lines,source" destdir="${build}" source="1.6" target="1.6" includeantruntime="false"
+			classpath="${classpath}:${jars}" />
+	</target>
+
+	<target name="test" depends="compile">
+		<java classname="com.xonami.jingleBellsSample.JingleBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JingleBellSample" />
+			<arg value="CALL_AND_ANSWER" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-D${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
+	<target name="clean">
+		<delete dir="${build}" />
+	</target>
+</project>
