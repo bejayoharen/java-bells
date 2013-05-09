@@ -22,6 +22,7 @@ import org.ice4j.ice.Agent;
 import org.ice4j.ice.Candidate;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
+import org.ice4j.ice.IceProcessingState;
 import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
@@ -68,8 +69,36 @@ public class IceUtil {
 					System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(streamname) );
 					System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(streamname) );
 					System.out.println( "-------------- "  + controling + " - Agent Property Change - -----------------" );
+					
+					
+					
+		            if(agent.getState() == IceProcessingState.COMPLETED)
+		            {
+		                List<IceMediaStream> streams = agent.getStreams();
+
+		                for(IceMediaStream stream : streams)
+		                {
+		                    String streamName = stream.getName();
+		                    System.out.println( "Pairs selected for stream: " + streamName);
+		                    List<Component> components = stream.getComponents();
+
+		                    for(Component cmp : components)
+		                    {
+		                        String cmpName = cmp.getName();
+		                        System.out.println(cmpName + ": " + cmp.getSelectedPair());
+		                    }
+		                }
+
+		                System.out.println("Printing the completed check lists:");
+		                for(IceMediaStream stream : streams)
+		                {
+		                    String streamName = stream.getName();
+		                    System.out.println("Check list for  stream: " + streamName);
+		                    //uncomment for a more verbose output
+		                    System.out.println(stream.getCheckList());
+		                }
+		            }
 				}
-				
 			});
 		}
 		
@@ -129,13 +158,13 @@ public class IceUtil {
 			System.out.println( "+++++++" + controling + "+ Checklist ++++++++++++++" );//FIXME
 		}
 	}
-	public void addLocalCandidateToContents(List<ContentPacketExtension> contentList, int generation) {
-		IceUdpTransportPacketExtension ext = getLocalCandidatePacketExtension(generation);
+	public void addLocalCandidateToContents(List<ContentPacketExtension> contentList) {
+		IceUdpTransportPacketExtension ext = getLocalCandidatePacketExtension();
 		for( ContentPacketExtension cpe : contentList ) {
 			cpe.addChildExtension(ext);
 		}
 	}
-	public IceUdpTransportPacketExtension getLocalCandidatePacketExtension(int generation) {
+	public IceUdpTransportPacketExtension getLocalCandidatePacketExtension() {
 		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
 		transport.setPassword( agent.getLocalPassword() );
 		transport.setUfrag( agent.getLocalUfrag() );
@@ -146,7 +175,7 @@ public class IceUtil {
 					CandidatePacketExtension candidate = new CandidatePacketExtension();
 					candidate.setComponent(c.getComponentID());
 					candidate.setFoundation(Integer.parseInt(can.getFoundation()));
-					candidate.setGeneration(generation);
+					candidate.setGeneration(agent.getGeneration());
 					candidate.setID(generateNonce(10));//FIXME: how do we establish the ID?
 					candidate.setNetwork(0); //FIXME: we need to identify the network card properly.
 					TransportAddress ta = can.getTransportAddress();
@@ -161,6 +190,7 @@ public class IceUtil {
 					candidate.setType(convertType(can.getType()));
 					
 					transport.addCandidate(candidate);
+					//System.out.println( ">>> >> > " + candidate.toXML() );
 				}
 			}
 		}

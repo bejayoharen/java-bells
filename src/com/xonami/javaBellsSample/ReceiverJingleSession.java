@@ -54,13 +54,16 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				} catch( IOException ioe ) {
 					throw new RuntimeException( ioe );
 				}
-				iceUtil.addLocalCandidateToContents(contentList,0);
+				iceUtil.addLocalCandidateToContents(contentList);
 	
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
 				connection.sendPacket(iq);
 				state = SessionState.NEGOTIATING_TRANSPORT;
 				
 				iceUtil.addRemoteCandidates( jiq );
+				
+//				iceUtil.startConnectivityEstablishment();
+				
 				System.out.println( iq.toXML() ); //FIXME
 			} else {
 				System.out.println("Rejecting call!");

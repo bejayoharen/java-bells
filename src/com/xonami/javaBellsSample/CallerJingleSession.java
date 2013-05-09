@@ -24,8 +24,11 @@ import com.xonami.javaBells.StunTurnAddress;
  *
  */
 public class CallerJingleSession extends DefaultJingleSession {
-	public CallerJingleSession(JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
+	private final IceUtil iceUtil;
+	
+	public CallerJingleSession(IceUtil iceUtil, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
+		this.iceUtil = iceUtil;
 		this.peerJid = peerJid;
 	}
 
@@ -34,42 +37,10 @@ public class CallerJingleSession extends DefaultJingleSession {
 		//acknowledge
 		if( !checkAndAck(jiq) )
 			return;
+
+		state = SessionState.NEGOTIATING_TRANSPORT;
 		
-//		IceUtil iceUtil;
-//		try {
-//			String name = JingleUtil.getContentPacketName(jiq);
-//			
-//			StunTurnAddress sta = StunTurnAddress.getAddress( connection );
-//			
-//			List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
-//			try {
-//				iceUtil = new IceUtil(true, connection.getUser(), name, sta.getStunAddresses(), sta.getTurnAddresses());
-//			} catch( IOException ioe ) {
-//				throw new RuntimeException( ioe );
-//			}
-//			iceUtil.addLocalCandidateToContents(contentList,0);
-//	
-//			JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
-//			connection.sendPacket(iq);
-//			state = SessionState.NEGOTIATING_TRANSPORT;
-//			
-//			iceUtil.addRemoteCandidates( jiq );
-//			iceUtil.startConnectivityEstablishment();
-//			System.out.println( iq.toXML() );
-			
-//			System.out.println( "sleeping..." );
-//			try {
-//				Thread.sleep(60000);
-//			} catch (InterruptedException e) {}
-//			
-//			System.out.println( "Caller Exit" );
-//			System.exit(0);
-//		} catch (IOException ioe) {
-//			System.out.println("An error occured. Rejecting call!");
-//			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
-//			connection.sendPacket(iq);
-//			closeSession();
-//		}
+		iceUtil.addRemoteCandidates( jiq );
+		iceUtil.startConnectivityEstablishment();
 	}
-	
 }

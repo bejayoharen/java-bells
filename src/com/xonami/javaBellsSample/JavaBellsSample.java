@@ -6,12 +6,14 @@ package com.xonami.javaBellsSample;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.List;
+import java.util.logging.Level;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
 
+import org.ice4j.ice.Agent;
 import org.jitsi.service.libjitsi.LibJitsi;
 import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -78,6 +80,10 @@ public class JavaBellsSample {
 				System.exit(1);
 			}
 		}) ;
+		
+		// reduce the insane, unreadable amount of chattyness from libjitsi and ice4j:
+		java.util.logging.Logger l = java.util.logging.Logger.getLogger("");
+		l.setLevel(Level.WARNING);
 		
 		LibJitsi.start();
 		
@@ -241,10 +247,12 @@ public class JavaBellsSample {
 					connection.connect();
 					StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 					
+					final IceUtil iceUtil = new IceUtil(true, callerJid, "video", sta.getStunAddresses(), sta.getTurnAddresses());
+					
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-							return new CallerJingleSession(this, receiverJid, sid, this.connection);
+							return new CallerJingleSession(iceUtil, this, receiverJid, sid, this.connection);
 						}
 					} ;
 					
@@ -280,8 +288,7 @@ public class JavaBellsSample {
 //					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
 					List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
-					IceUtil iceUtil = new IceUtil(true, connection.getUser(), "video", sta.getStunAddresses(), sta.getTurnAddresses());
-					iceUtil.addLocalCandidateToContents(contentList,0);
+					iceUtil.addLocalCandidateToContents(contentList);
 					
 					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );
 					
