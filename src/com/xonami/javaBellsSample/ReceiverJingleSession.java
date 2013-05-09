@@ -1,4 +1,4 @@
-package com.xonami.jingleBellsSample;
+package com.xonami.javaBellsSample;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,10 +9,10 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentP
 import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
 
-import com.xonami.jingleBells.DefaultJingleSession;
-import com.xonami.jingleBells.IceUtil;
-import com.xonami.jingleBells.JingleUtil;
-import com.xonami.jingleBells.StunTurnAddress;
+import com.xonami.javaBells.DefaultJingleSession;
+import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.JingleUtil;
+import com.xonami.javaBells.StunTurnAddress;
 
 /**
  * Handles jingle packets for the receiver.

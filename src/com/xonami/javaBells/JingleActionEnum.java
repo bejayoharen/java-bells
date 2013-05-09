@@ -1,4 +1,4 @@
-package com.xonami.jingleBells;
+package com.xonami.javaBells;
 
 /**
  * The "action" in the jingle packet, as an enum.

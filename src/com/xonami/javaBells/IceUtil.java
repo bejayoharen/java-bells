@@ -1,4 +1,4 @@
-package com.xonami.jingleBells;
+package com.xonami.javaBells;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;

@@ -1,4 +1,4 @@
-package com.xonami.jingleBells;
+package com.xonami.javaBells;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQProvider;

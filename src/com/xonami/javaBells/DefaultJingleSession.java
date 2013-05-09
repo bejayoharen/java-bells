@@ -1,4 +1,4 @@
-package com.xonami.jingleBells;
+package com.xonami.javaBells;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.IQ;

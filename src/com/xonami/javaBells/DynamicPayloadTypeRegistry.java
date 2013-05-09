@@ -1,4 +1,4 @@
-package com.xonami.jingleBells;
+package com.xonami.javaBells;
 
 /*
  * Jitsi, the OpenSource Java VoIP and Instant Messaging client.

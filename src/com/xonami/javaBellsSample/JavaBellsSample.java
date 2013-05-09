@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.xonami.jingleBellsSample;
+package com.xonami.javaBellsSample;
 
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -23,12 +23,12 @@ import org.jivesoftware.smack.packet.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.xonami.jingleBells.IceUtil;
-import com.xonami.jingleBells.JingleManager;
-import com.xonami.jingleBells.JinglePacketHandler;
-import com.xonami.jingleBells.JingleSession;
-import com.xonami.jingleBells.JingleUtil;
-import com.xonami.jingleBells.StunTurnAddress;
+import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.JingleManager;
+import com.xonami.javaBells.JinglePacketHandler;
+import com.xonami.javaBells.JingleSession;
+import com.xonami.javaBells.JingleUtil;
+import com.xonami.javaBells.StunTurnAddress;
 
 /**
  * 
@@ -38,7 +38,7 @@ import com.xonami.jingleBells.StunTurnAddress;
  * @author bjorn
  *
  */
-public class JingleBellsSample {
+public class JavaBellsSample {
 	enum Action {
 		CALL,
 		ANSWER,
@@ -93,7 +93,7 @@ public class JingleBellsSample {
 		
 		System.out.println( "u/p @ h: " + username + " / " + password + " @ " + host);
 		
-		JingleBellsSample m = new JingleBellsSample( username, password, host );
+		JavaBellsSample m = new JavaBellsSample( username, password, host );
 		if( action == Action.ANSWER || action == Action.CALL_AND_ANSWER ) {
 			m.startAnswer();
 		}
@@ -113,7 +113,7 @@ public class JingleBellsSample {
 	}
 	
 	/** creates a new object with the given username and password on the given host. */
-	public JingleBellsSample( String username, String password, String host ) {
+	public JavaBellsSample( String username, String password, String host ) {
 		this.username = username;
 		this.password = password;
 		this.host     = host;

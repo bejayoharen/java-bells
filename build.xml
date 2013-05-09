@@ -1,6 +1,6 @@
-<project name="Jingle Bells" default="dist" basedir=".">
+<project name="Java Bells" default="dist" basedir=".">
 	<description>
-		Builds Jingle Bells, a Jingle jibrary for java.
+		Builds Java Bells, a Jingle jibrary for java.
 	</description>
 	<property name="src" location="src" />
 	<property name="build" location="bin" />
@@ -25,13 +25,13 @@
 	</target>
 
 	<target name="test" depends="compile">
-		<java classname="com.xonami.jingleBellsSample.JingleBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
-			<arg value="JingleBellSample" />
+		<java classname="com.xonami.javaBellsSample.JavaBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsSample" />
 			<arg value="CALL_AND_ANSWER" />
 			<arg value="${username}" />
 			<arg value="${password}" />
 			<arg value="${host}" />
-			<jvmarg value="-D${java.library.path}:lib/native/mac" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
 		</java>
 	</target>
 
