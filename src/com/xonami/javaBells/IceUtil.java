@@ -91,7 +91,6 @@ public class IceUtil {
 	}
 	
 	public void addRemoteCandidates(JingleIQ jiq) {
-		
 		for( ContentPacketExtension contentpe : jiq.getContentList() ) {
 			String name = contentpe.getName();
 			IceMediaStream ims = agent.getStream( name );
@@ -130,8 +129,13 @@ public class IceUtil {
 			System.out.println( "+++++++" + controling + "+ Checklist ++++++++++++++" );//FIXME
 		}
 	}
-	
-	public IceUdpTransportPacketExtension getPacketExtension(int generation) {
+	public void addLocalCandidateToContents(List<ContentPacketExtension> contentList, int generation) {
+		IceUdpTransportPacketExtension ext = getLocalCandidatePacketExtension(generation);
+		for( ContentPacketExtension cpe : contentList ) {
+			cpe.addChildExtension(ext);
+		}
+	}
+	public IceUdpTransportPacketExtension getLocalCandidatePacketExtension(int generation) {
 		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
 		transport.setPassword( agent.getLocalPassword() );
 		transport.setUfrag( agent.getLocalUfrag() );
@@ -161,12 +165,6 @@ public class IceUtil {
 			}
 		}
 		return transport;
-	}
-	public void addTransportToContents(List<ContentPacketExtension> contentList, int generation) {
-		IceUdpTransportPacketExtension ext = getPacketExtension(generation);
-		for( ContentPacketExtension cpe : contentList ) {
-			cpe.addChildExtension(ext);
-		}
 	}
 	
 	private CandidateType convertType(org.ice4j.ice.CandidateType type) {

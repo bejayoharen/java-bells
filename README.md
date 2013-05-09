@@ -12,6 +12,18 @@ and decent documentation.
 This library is not yet functional and is, frankly, a bit of a mess, but we're getting there.
 
 
+Project Goals
+-------------
+
+The goals of this project are:
+
+- to create an easy-to-use method of adding audio and video chat functionality to any java app.
+- to not require developers to have more than a cursory understanding of Jingle or ICE.
+- to not modify third-party code or libraries, so that this code can be kept up-to-date easily.
+- to be as minimal as possible.
+
+It is also desirable to minimize external requirements, but this is less important.
+
 Compiling and Running
 -------------------
 

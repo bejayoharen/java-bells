@@ -261,26 +261,27 @@ public class JavaBellsSample {
 							}
 						} );
 					
-					PacketCollector collector = connection.createPacketCollector( new PacketFilter() {
-						@Override
-						public boolean accept(Packet packet) {
-							return true;
-						}} );
+//					PacketCollector collector = connection.createPacketCollector( new PacketFilter() {
+//						@Override
+//						public boolean accept(Packet packet) {
+//							return true;
+//						}} );
 					
 					log( CALLER, "logging on as " + username + "/" + CALLER );
 					connection.login(username, password, CALLER);
 					
-					log( CALLER, "Waiting for Reciever to become available." );
-					while( !running && !connection.getRoster().contains(receiverJid) ) {
-						collector.nextResult(100);
-					}
+					//this only works if they are in our roster
+//					log( CALLER, "Waiting for Receiver to become available." );
+//					while( running && !connection.getRoster().contains(receiverJid) ) {
+//						collector.nextResult(100);
+//					}
 					
 					log( CALLER, "Ringing" );
 //					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
 					List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
 					IceUtil iceUtil = new IceUtil(true, connection.getUser(), "video", sta.getStunAddresses(), sta.getTurnAddresses());
-					iceUtil.addTransportToContents(contentList,0);
+					iceUtil.addLocalCandidateToContents(contentList,0);
 					
 					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );
 					

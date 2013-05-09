@@ -35,6 +35,28 @@
 		</java>
 	</target>
 
+	<target name="testanswer" depends="compile">
+		<java classname="com.xonami.javaBellsSample.JavaBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsSample" />
+			<arg value="ANSWER" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
+	<target name="testcall" depends="compile">
+		<java classname="com.xonami.javaBellsSample.JavaBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsSample" />
+			<arg value="CALL" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
 	<target name="clean">
 		<delete dir="${build}" />
 	</target>

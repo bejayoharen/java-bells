@@ -54,7 +54,7 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				} catch( IOException ioe ) {
 					throw new RuntimeException( ioe );
 				}
-				iceUtil.addTransportToContents(contentList,0);
+				iceUtil.addLocalCandidateToContents(contentList,0);
 	
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
 				connection.sendPacket(iq);
