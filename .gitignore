@@ -1,6 +1,17 @@
+# eclipse files
+.classpath
+.project
+.settings
+
+#vi(m) swap files
+*.swp
+
 *.class
 
 # Package Files #
 *.jar
 *.war
 *.ear
+
+# jmf log
+jmf.log

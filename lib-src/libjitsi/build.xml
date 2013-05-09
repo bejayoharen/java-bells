@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="libjitsi">
+
+  <property file="local.properties" />
+  <property name="dest" value="classes" />
+  <property name="dist" value="dist" />
+  <property name="libjitsi.jar" value="libjitsi.jar"/>
+  <property name="src" value="src"/>
+  <property name="doc" value="doc"/>
+  <property name="java.doc" value="${doc}/api"/>
+  <property name="native.libs" value="lib/native"/>
+  <property environment="system"/>
+     
+  <path id="compile.class.path">
+    <fileset dir="lib" includes="*.jar" />
+  </path>
+
+  <condition property="build.label"
+             value="-${label}"
+             else="">
+    <isset property="label"/>
+  </condition>
+
+  <!-- Import JNI build xml -->
+  <import file="${src}/native/build.xml"/>
+
+  <target
+      name="clean"
+      description="Remove all compiled/generated files and prepare for a clean compile/build.">
+    <delete failonerror="false" includeemptydirs="true">
+      <fileset file="${libjitsi.jar}" />
+      <fileset dir="${dest}" />
+      <fileset dir="${dist}" />
+      <fileset dir="${doc}" />
+    </delete>
+  </target>
+
+  <target name="compile">
+    <mkdir dir="${dest}" />
+    <javac
+        classpathref="compile.class.path"
+        debug="true"
+        destdir="${dest}"
+        fork="true"
+        optimize="true"
+        source="1.5"
+        target="1.5">
+      <src path="${src}"/>
+      <exclude name="org/jitsi/impl/neomedia/codec/audio/speex/Java*"/>
+    </javac>
+  </target>
+
+  <target name="compile-with-g729">
+    <replace
+        file="${src}/org/jitsi/impl/neomedia/codec/EncodingConfigurationImpl.java"
+        token="public static final boolean G729 = false"
+        value="public static final boolean G729 = true"/>
+    <antcall target="compile" />
+    <replace
+        file="${src}/org/jitsi/impl/neomedia/codec/EncodingConfigurationImpl.java"
+        token="public static final boolean G729 = true"
+        value="public static final boolean G729 = false"/>
+   </target>
+
+  <target name="jar" depends="compile">
+    <jar
+        compress="true"
+        destfile="${libjitsi.jar}">
+      <fileset casesensitive="no" dir="${dest}">
+        <include name="**/*.class" />
+      	<include name="**/*.properties" />
+        <exclude name="${dest}/libjitsi.jar" />
+      </fileset>
+    </jar>    
+  </target>
+
+  <target
+      name="make"
+      depends="compile,jar"
+      description="Incrementally compile and jar/package the project." />
+  
+  <target
+      name="make-with-g729"
+      depends="compile-with-g729,jar"
+      description="Incrementally compile and jar/package the project including support for the G.729 audio codec." />
+
+  <target
+      name="rebuild"
+      depends="clean,make"
+      description="Clean and make the project." />
+
+  <!--
+    Run a libjitsi example from the org.jitsi.examples package by name. The name
+    of the example to run is to be specified as the value of the Ant property
+    'run.example.name'. Command-line arguments may be specified to the example
+    to be run via the Ant property 'run.example.arg.line'.
+  -->
+  <target
+      name="run-example"
+      depends="compile"
+      description="Run a libjitsi example by name.">
+    <java
+        classname="org.jitsi.examples.${run.example.name}"
+        failonerror="true"
+        fork="true">
+      <arg line="${run.example.arg.line}" />
+      <classpath>
+        <path refid="compile.class.path" />
+        <pathelement location="${dest}" />
+      </classpath>
+      <sysproperty
+          key="java.library.path"
+          path="lib/native/linux-64:lib/native/linux:lib/native/mac:lib/native/windows-64:lib/native/windows" />
+    </java>
+  </target>
+
+  <!-- JAVADOC -->
+  <target name="javadoc"
+      description="Generates project javadoc.">
+      <javadoc author="true" destdir="${java.doc}" package="true"
+          version="true" use="true" windowtitle="Jitsi API"
+          classpathref="compile.class.path" source="1.5+" maxmemory="256m">
+          <packageset dir="${src}">
+              <include name="**"/>
+          </packageset>
+          <tag name="todo" description="To do:"/>
+          <tag name="note" description="Note:"/>
+          <link href="${j2se_api}" />
+          <header>
+              <![CDATA[
+              <b> Jitsi: the OpenSource Java VoIP and Instant Messaging client. </b>
+              ]]>
+          </header>
+          <bottom>
+              <![CDATA[
+              <font size="-1">
+                  <a href="http://jitsi.org"> Jitsi, the OpenSource Java VoIP and Instant Messaging client. </a>
+                  <br>
+                      <a href="http://gnu.org"> Distributable under LGPL license. </a>
+                  <br>
+              </font>
+              ]]>
+          </bottom>
+      </javadoc>
+  </target>
+
+  <!-- build all binaries and the libjitsi.jar -->
+  <target name="dist" depends="make">
+      <mkdir dir="${dist}/windows"/>
+      <mkdir dir="${dist}/macosx"/>
+      <mkdir dir="${dist}/linux"/>
+
+      <zip destfile="${dist}/windows/libjitsi${build.label}-x86.zip">
+          <zipfileset file="libjitsi.jar" />
+          <zipfileset dir="lib" includes="*.jar" prefix="lib"/>
+          <zipfileset dir="lib/native/windows" includes="*.dll"
+                      prefix="lib/native/windows"/>
+      </zip>
+      <zip destfile="${dist}/windows/libjitsi${build.label}-x64.zip">
+          <zipfileset file="libjitsi.jar" />
+          <zipfileset dir="lib" includes="*.jar" prefix="lib"/>
+          <zipfileset dir="lib/native/windows-64" includes="*.dll"
+                      prefix="lib/native/windows-64"/>
+      </zip>
+      <zip destfile="${dist}/macosx/libjitsi${build.label}.zip">
+          <zipfileset file="libjitsi.jar" />
+          <zipfileset dir="lib" includes="*.jar" prefix="lib"/>
+          <zipfileset dir="lib/native/mac" includes="*.jnilib"
+                      prefix="lib/native/mac"/>
+      </zip>
+      <zip destfile="${dist}/linux/libjitsi${build.label}-i386.zip">
+          <zipfileset file="libjitsi.jar" />
+          <zipfileset dir="lib" includes="*.jar" prefix="lib"/>
+          <zipfileset dir="lib/native/linux" includes="*.so"
+                      prefix="lib/native/linux"/>
+      </zip>
+      <zip destfile="${dist}/linux/libjitsi${build.label}-amd64.zip">
+          <zipfileset file="libjitsi.jar" />
+          <zipfileset dir="lib" includes="*.jar" prefix="lib"/>
+          <zipfileset dir="lib/native/linux-64" includes="*.so"
+                      prefix="lib/native/linux-64"/>
+      </zip>
+  </target>
+
+</project>
