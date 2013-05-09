@@ -85,8 +85,8 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 		}
 	}
 	
-	public JingleSession removeJingleSession( JingleSession sessionId ) { //FIXME this needs to get called when the session is closed
-		return jingleSessions.remove( sessionId );
+	public JingleSession removeJingleSession( JingleSession session ) {
+		return jingleSessions.remove( session.getSessionId() );
 	}
 	
 	/**
@@ -97,7 +97,7 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 	 * @param jiq
 	 */
 	public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-		return new DefaultJingleSession(sid, connection);
+		return new DefaultJingleSession(this, sid, connection);
 	}
 
 	/**

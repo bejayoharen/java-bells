@@ -41,4 +41,6 @@ public interface JingleSession {
 	public void handleTransportReject(JingleIQ jiq) ;
 	/** Called when the session receives a session-replace jingle iq */
 	public void handleSessionReplace(JingleIQ jiq) ;
+	/** returns the ID of this session. */
+	public String getSessionId();
 }

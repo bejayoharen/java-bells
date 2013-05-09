@@ -162,7 +162,7 @@ public class JavaBellsSample {
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-							return new ReceiverJingleSession(callerJid, sid, this.connection );
+							return new ReceiverJingleSession(this, callerJid, sid, this.connection );
 						}
 					} ;
 					
@@ -244,7 +244,7 @@ public class JavaBellsSample {
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-							return new CallerJingleSession(receiverJid, sid, this.connection);
+							return new CallerJingleSession(this, receiverJid, sid, this.connection);
 						}
 					} ;
 					

@@ -11,6 +11,7 @@ import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
 import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleUtil;
 import com.xonami.javaBells.StunTurnAddress;
 
@@ -26,8 +27,8 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 	private final String callerJid;
 	private IceUtil iceUtil;
 
-	public ReceiverJingleSession(String callerJid, String sessionId, XMPPConnection connection) {
-		super(sessionId, connection);
+	public ReceiverJingleSession(JinglePacketHandler jinglePacketHandler, String callerJid, String sessionId, XMPPConnection connection) {
+		super(jinglePacketHandler, sessionId, connection);
 		this.callerJid = callerJid;
 	}
 
@@ -66,13 +67,13 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				// it didn't match. Reject the call.
 				JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 				connection.sendPacket(iq);
-				state = SessionState.CLOSED;
+				closeSession();
 			}
 		} catch( IOException ioe ) {
 			System.out.println("An error occured. Rejecting call!");
 			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 			connection.sendPacket(iq);
-			state = SessionState.CLOSED;
+			closeSession();
 		}
 	}
 	public void handleSessionAccept(JingleIQ jiq) {

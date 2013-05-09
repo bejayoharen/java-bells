@@ -21,13 +21,15 @@ public class DefaultJingleSession implements JingleSession {
 		CLOSED,
 	}
 	
+	protected final JinglePacketHandler jinglePacketHandler;
 	protected final String myJid;
 	protected final String sessionId;
 	protected final XMPPConnection connection;
 	protected SessionState state;
 	protected String peerJid;
 	
-	public DefaultJingleSession( String sessionId, XMPPConnection connection ) {
+	public DefaultJingleSession( JinglePacketHandler jinglePacketHandler, String sessionId, XMPPConnection connection ) {
+		this.jinglePacketHandler = jinglePacketHandler;
 		this.myJid = connection.getUser();
 		this.sessionId = sessionId;
 		this.connection = connection;
@@ -48,8 +50,13 @@ public class DefaultJingleSession implements JingleSession {
 			ack(jiq);
 			return true;
 		}
-		state = SessionState.CLOSED;
+		closeSession();
 		return false;
+	}
+
+	protected void closeSession() {
+		state = SessionState.CLOSED;
+		jinglePacketHandler.removeJingleSession(this);
 	}
 
 	public void ack( IQ iq ) {
@@ -99,15 +106,14 @@ public class DefaultJingleSession implements JingleSession {
 		peerJid = jiq.getFrom();
 		JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 		connection.sendPacket(iq);
-		state = SessionState.CLOSED;
+		closeSession();
 	}
 
 	/** sets the state to closed. */
 	public void handleSessionTerminate(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
-		System.out.println( "Session TERMINATED!" );
-		state = SessionState.CLOSED;
+		closeSession();
 	}
 
 	
@@ -122,11 +128,15 @@ public class DefaultJingleSession implements JingleSession {
 	public void handleTransportReject(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
-		System.out.println( "Session TERMINATED!" );
-		state = SessionState.CLOSED;
+		closeSession();
 	}
 
 	public void handleSessionReplace(JingleIQ jiq) {
 		checkAndAck(jiq);
+	}
+
+	@Override
+	public String getSessionId() {
+		return sessionId;
 	}
 }

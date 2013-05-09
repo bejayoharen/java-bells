@@ -30,7 +30,10 @@ import org.ice4j.security.LongTermCredential;
 
 
 /**
- * Utility class for gathering and processing ice candidates.
+ * Utility class for gathering and processing ice candidates. This class also converts
+ * XMPP/jingle formatted data to and from ice format.
+ * 
+ * FIXME: this class is incomplete
  * 
  * @author bjorn
  *
