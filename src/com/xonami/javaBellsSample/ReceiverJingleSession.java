@@ -84,27 +84,21 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 		iceUtil.startConnectivityEstablishment();
 	}
 	public void handleTransportInfo(JingleIQ jiq) {
-		System.out.println( "------------ a " );
 		if( !this.checkAndAck(jiq) )
 			return;
-		System.out.println( "------------ b " );
 		
 		//hotness! we should now be able to start talking
-		try {
 		TransportAddress ta = iceUtil.getTransportAddressFromRemoteCandidate(jiq);
-		System.out.println( "------------ c " );
 		if( ta == null ) {
-			System.out.println( "------------ d " );
 			connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId) );
-			System.out.println( "------------ e " );
 			closeSession();
-			System.out.println( "------------ f " );
+		} else {
+			state = SessionState.OPEN;
 		}
-		System.out.println( "------------ g " );
+		System.out.println( "=============" );
+		System.out.println( "=============" );
+		System.out.println( "We can now connect to this remote transport address:" );
 		System.out.println( ta );
 		System.exit(0);
-		} catch( Exception e) {
-			e.printStackTrace();
-		}
 	}
 }
