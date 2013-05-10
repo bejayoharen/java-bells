@@ -6,6 +6,9 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentP
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RemoteCandidatePacketExtension;
+
+import org.ice4j.TransportAddress;
 import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
 
@@ -61,10 +64,6 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				state = SessionState.NEGOTIATING_TRANSPORT;
 				
 				iceUtil.addRemoteCandidates( jiq );
-				
-//				iceUtil.startConnectivityEstablishment();
-				
-				System.out.println( iq.toXML() ); //FIXME
 			} else {
 				System.out.println("Rejecting call!");
 				// it didn't match. Reject the call.
@@ -83,5 +82,29 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 		if( !this.checkAndAck(jiq) )
 			return;
 		iceUtil.startConnectivityEstablishment();
+	}
+	public void handleTransportInfo(JingleIQ jiq) {
+		System.out.println( "------------ a " );
+		if( !this.checkAndAck(jiq) )
+			return;
+		System.out.println( "------------ b " );
+		
+		//hotness! we should now be able to start talking
+		try {
+		TransportAddress ta = iceUtil.getTransportAddressFromRemoteCandidate(jiq);
+		System.out.println( "------------ c " );
+		if( ta == null ) {
+			System.out.println( "------------ d " );
+			connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId) );
+			System.out.println( "------------ e " );
+			closeSession();
+			System.out.println( "------------ f " );
+		}
+		System.out.println( "------------ g " );
+		System.out.println( ta );
+		System.exit(0);
+		} catch( Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -18,6 +18,7 @@ public class DefaultJingleSession implements JingleSession {
 	public enum SessionState {
 		NEW,
 		NEGOTIATING_TRANSPORT,
+		OPEN,
 		CLOSED,
 	}
 	

@@ -13,8 +13,10 @@ import java.util.List;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.CandidatePacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.CandidateType;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.IceUdpTransportPacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RemoteCandidatePacketExtension;
 
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
@@ -28,6 +30,7 @@ import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
 import org.ice4j.security.LongTermCredential;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 
 /**
@@ -52,62 +55,21 @@ public class IceUtil {
 	
 	private final Agent agent; //FIXME need to free this when done
 	private final boolean controling;
+	private final String streamname;
 	
 	public IceUtil( final boolean controling, String username, final String streamname, TransportAddress stunAddresses[], TransportAddress turnAddresses[] ) throws IOException {
 		this.agent = new Agent();
 		this.controling = controling;
+		this.streamname = streamname;
 		agent.setControlling(controling);
-		{
-			agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
-			agent.addStateChangeListener(new PropertyChangeListener() {
-
-				@Override
-				public void propertyChange(PropertyChangeEvent pce) {
-					// FIXME: this is where we find out about agent processing status, I believe.
-					System.out.println( "-------------- "  + controling + " - Agent Property Change - -----------------" );
-					System.out.println( "New State: " + pce.getNewValue() );
-					System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(streamname) );
-					System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(streamname) );
-					System.out.println( "-------------- "  + controling + " - Agent Property Change - -----------------" );
-					
-					
-					
-		            if(agent.getState() == IceProcessingState.COMPLETED)
-		            {
-		                List<IceMediaStream> streams = agent.getStreams();
-
-		                for(IceMediaStream stream : streams)
-		                {
-		                    String streamName = stream.getName();
-		                    System.out.println( "Pairs selected for stream: " + streamName);
-		                    List<Component> components = stream.getComponents();
-
-		                    for(Component cmp : components)
-		                    {
-		                        String cmpName = cmp.getName();
-		                        System.out.println(cmpName + ": " + cmp.getSelectedPair());
-		                    }
-		                }
-
-		                System.out.println("Printing the completed check lists:");
-		                for(IceMediaStream stream : streams)
-		                {
-		                    String streamName = stream.getName();
-		                    System.out.println("Check list for  stream: " + streamName);
-		                    //uncomment for a more verbose output
-		                    System.out.println(stream.getCheckList());
-		                }
-		            }
-				}
-			});
-		}
+		agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
 		
 		//stun and turn
 		if( stunAddresses != null )
 			for( TransportAddress ta : stunAddresses )
-				agent.addCandidateHarvester(new StunCandidateHarvester(ta,username) );
+				agent.addCandidateHarvester(new StunCandidateHarvester(ta,username) ); //FIXME: I don't think this is the right use of username
 		
-		LongTermCredential ltr = new LongTermCredential(username, generateNonce(15));
+		LongTermCredential ltr = new LongTermCredential(username, generateNonce(15)); //FIXME: I don't think this is the right use of username
 		if( turnAddresses != null )
 			for( TransportAddress ta : turnAddresses )
 				agent.addCandidateHarvester(new TurnCandidateHarvester(ta,ltr) );
@@ -117,6 +79,14 @@ public class IceUtil {
 		} catch( BindException be ) {
 			throw new IOException(be);
 		}
+	}
+	
+	public Agent getAgent() {
+		return agent;
+	}
+	
+	public String getStreamName() {
+		return streamname;
 	}
 	
 	public void addRemoteCandidates(JingleIQ jiq) {
@@ -158,6 +128,48 @@ public class IceUtil {
 			System.out.println( "+++++++" + controling + "+ Checklist ++++++++++++++" );//FIXME
 		}
 	}
+	
+	public ContentPacketExtension getSelectedRemoteCandidateContent() {
+		ContentPacketExtension cpe = new ContentPacketExtension(CreatorEnum.initiator, getStreamName());
+		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
+		transport.setPassword( agent.getLocalPassword() );
+		transport.setUfrag( agent.getLocalUfrag() );
+		
+        RemoteCandidate rc = agent.getSelectedRemoteCandidate(getStreamName());
+        RemoteCandidatePacketExtension rcp = new RemoteCandidatePacketExtension();
+        rcp.setComponent(rc.getParentComponent().getComponentID());
+        rcp.setFoundation(Integer.parseInt(rc.getFoundation()));
+        rcp.setGeneration(agent.getGeneration());
+        rcp.setIP(rc.getTransportAddress().getHostAddress() );
+        rcp.setPort(rc.getTransportAddress().getPort() );
+        rcp.setProtocol(rc.getTransport().name().toLowerCase());
+        rcp.setType(convertType(rc.getType()));
+        
+        transport.addCandidate(rcp);
+        cpe.addChildExtension(transport);
+
+		return cpe;
+	}
+	
+	public TransportAddress getTransportAddressFromRemoteCandidate(JingleIQ jiq) {
+		ContentPacketExtension cpe = jiq.getContentForType(IceUdpTransportPacketExtension.class);
+		if( cpe == null )
+			return null;
+		IceUdpTransportPacketExtension transport = null;
+		for( PacketExtension pe : cpe.getChildExtensions() ) {
+			if( pe instanceof IceUdpTransportPacketExtension ) {
+				transport = (IceUdpTransportPacketExtension) pe;
+				break;
+			}
+		}
+		if( transport == null )
+			return null;
+		RemoteCandidatePacketExtension rcp = transport.getRemoteCandidate();
+		if( rcp == null )
+			return null;
+		return new TransportAddress( rcp.getIP(), rcp.getPort(), Transport.parse(rcp.getProtocol()) );
+	}
+	
 	public void addLocalCandidateToContents(List<ContentPacketExtension> contentList) {
 		IceUdpTransportPacketExtension ext = getLocalCandidatePacketExtension();
 		for( ContentPacketExtension cpe : contentList ) {

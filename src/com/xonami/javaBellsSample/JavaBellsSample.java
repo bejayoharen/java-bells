@@ -81,7 +81,7 @@ public class JavaBellsSample {
 			}
 		}) ;
 		
-		// reduce the insane, unreadable amount of chattyness from libjitsi and ice4j:
+		// reduce the insane, unreadable amount of chattiness from libjitsi and ice4j:
 		java.util.logging.Logger l = java.util.logging.Logger.getLogger("");
 		l.setLevel(Level.WARNING);
 		
