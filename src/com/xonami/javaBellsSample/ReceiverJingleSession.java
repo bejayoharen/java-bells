@@ -11,7 +11,7 @@ import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
-import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleUtil;
 import com.xonami.javaBells.StunTurnAddress;
@@ -26,7 +26,7 @@ import com.xonami.javaBells.StunTurnAddress;
  */
 public class ReceiverJingleSession extends DefaultJingleSession {
 	private final String callerJid;
-	private IceUtil iceUtil;
+	private IceAgent iceAgent;
 
 	public ReceiverJingleSession(JinglePacketHandler jinglePacketHandler, String callerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
@@ -52,17 +52,17 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				
 				List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
 				try {
-					iceUtil = new IceUtil(false, connection.getUser(), name, sta.getStunAddresses(), sta.getTurnAddresses());
+					iceAgent = new IceAgent(false, connection.getUser(), name, sta.getStunAddresses(), sta.getTurnAddresses());
 				} catch( IOException ioe ) {
 					throw new RuntimeException( ioe );
 				}
-				iceUtil.addLocalCandidateToContents(contentList);
+				iceAgent.addLocalCandidateToContents(contentList);
 	
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
 				connection.sendPacket(iq);
 				state = SessionState.NEGOTIATING_TRANSPORT;
 				
-				iceUtil.addRemoteCandidates( jiq );
+				iceAgent.addRemoteCandidates( jiq );
 			} else {
 				System.out.println("Rejecting call!");
 				// it didn't match. Reject the call.
@@ -81,7 +81,7 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 	public void handleSessionAccept(JingleIQ jiq) {
 		if( !this.checkAndAck(jiq) )
 			return;
-		iceUtil.startConnectivityEstablishment();
+		iceAgent.startConnectivityEstablishment();
 	}
 	@Override
 	public void handleTransportInfo(JingleIQ jiq) {
@@ -89,7 +89,7 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 			return;
 		
 		//hotness! we should now be able to start talking
-		TransportAddress ta = iceUtil.getTransportAddressFromRemoteCandidate(jiq);
+		TransportAddress ta = iceAgent.getTransportAddressFromRemoteCandidate(jiq);
 		if( ta == null ) {
 			connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId) );
 			closeSession();

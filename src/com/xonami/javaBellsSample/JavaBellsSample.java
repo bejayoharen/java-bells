@@ -23,7 +23,7 @@ import org.jivesoftware.smack.packet.Packet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JingleManager;
 import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleSession;
@@ -245,12 +245,12 @@ public class JavaBellsSample {
 					connection.connect();
 					StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 					
-					final IceUtil iceUtil = new IceUtil(true, callerJid, "video", sta.getStunAddresses(), sta.getTurnAddresses());
+					final IceAgent iceAgent = new IceAgent(true, callerJid, "video", sta.getStunAddresses(), sta.getTurnAddresses());
 					
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-							return new CallerJingleSession(iceUtil, this, receiverJid, sid, this.connection);
+							return new CallerJingleSession(iceAgent, this, receiverJid, sid, this.connection);
 						}
 					} ;
 					
@@ -286,7 +286,7 @@ public class JavaBellsSample {
 //					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
 					List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
-					iceUtil.addLocalCandidateToContents(contentList);
+					iceAgent.addLocalCandidateToContents(contentList);
 					
 					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );
 					

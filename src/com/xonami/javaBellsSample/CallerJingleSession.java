@@ -16,7 +16,7 @@ import org.ice4j.ice.IceProcessingState;
 import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
-import com.xonami.javaBells.IceUtil;
+import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JinglePacketHandler;
 
 /**
@@ -26,9 +26,9 @@ import com.xonami.javaBells.JinglePacketHandler;
  *
  */
 public class CallerJingleSession extends DefaultJingleSession implements PropertyChangeListener {
-	private final IceUtil iceUtil;
+	private final IceAgent iceUtil;
 	
-	public CallerJingleSession(IceUtil iceUtil, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
+	public CallerJingleSession(IceAgent iceUtil, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
 		this.iceUtil = iceUtil;
 		this.peerJid = peerJid;
