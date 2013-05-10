@@ -6,8 +6,6 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentP
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RemoteCandidatePacketExtension;
-
 import org.ice4j.TransportAddress;
 import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
@@ -37,7 +35,8 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 
 	/** accepts the call only if it's from the caller want. */
 	@Override
-	public void handleSessionInitiate(JingleIQ jiq) {		// acknowledge:
+	public void handleSessionInitiate(JingleIQ jiq) {
+		// acknowledge:
 		ack(jiq);
 		// set the peerJid
 		peerJid = jiq.getFrom();
@@ -78,11 +77,13 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 			closeSession();
 		}
 	}
+	@Override
 	public void handleSessionAccept(JingleIQ jiq) {
 		if( !this.checkAndAck(jiq) )
 			return;
 		iceUtil.startConnectivityEstablishment();
 	}
+	@Override
 	public void handleTransportInfo(JingleIQ jiq) {
 		if( !this.checkAndAck(jiq) )
 			return;

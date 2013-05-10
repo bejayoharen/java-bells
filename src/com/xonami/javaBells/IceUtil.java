@@ -1,7 +1,5 @@
 package com.xonami.javaBells;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -24,7 +22,6 @@ import org.ice4j.ice.Agent;
 import org.ice4j.ice.Candidate;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
-import org.ice4j.ice.IceProcessingState;
 import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
