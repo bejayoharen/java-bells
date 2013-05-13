@@ -27,7 +27,7 @@ import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JingleManager;
 import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleSession;
-import com.xonami.javaBells.JingleUtil;
+import com.xonami.javaBells.JingleMediaStream;
 import com.xonami.javaBells.StunTurnAddress;
 
 /**
@@ -285,7 +285,7 @@ public class JavaBellsSample {
 					log( CALLER, "Ringing" );
 //					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
-					List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
+					List<ContentPacketExtension> contentList = JingleMediaStream.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
 					iceAgent.addLocalCandidateToContents(contentList);
 					
 					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );

@@ -13,7 +13,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import com.xonami.javaBells.DefaultJingleSession;
 import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JinglePacketHandler;
-import com.xonami.javaBells.JingleUtil;
+import com.xonami.javaBells.JingleMediaStream;
+import com.xonami.javaBells.NameAndTransportAddress;
 import com.xonami.javaBells.StunTurnAddress;
 
 /**
@@ -46,11 +47,11 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 				System.out.println("Accepting call!");
 				// okay, it matched, so accept the call and start negotiating
 				
-				String name = JingleUtil.getContentPacketName(jiq);
+				String name = JingleMediaStream.getContentPacketName(jiq);
 				
 				StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 				
-				List<ContentPacketExtension> contentList = JingleUtil.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
+				List<ContentPacketExtension> contentList = JingleMediaStream.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
 				try {
 					iceAgent = new IceAgent(false, connection.getUser(), name, sta.getStunAddresses(), sta.getTurnAddresses());
 				} catch( IOException ioe ) {
@@ -89,8 +90,8 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 			return;
 		
 		//hotness! we should now be able to start talking
-		TransportAddress ta = iceAgent.getTransportAddressFromRemoteCandidate(jiq);
-		if( ta == null ) {
+		NameAndTransportAddress nta = iceAgent.getTransportAddressFromRemoteCandidate(jiq);
+		if( nta == null ) {
 			connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId) );
 			closeSession();
 		} else {
@@ -99,7 +100,7 @@ public class ReceiverJingleSession extends DefaultJingleSession {
 		System.out.println( "=============" );
 		System.out.println( "=============" );
 		System.out.println( "We can now connect to this remote transport address:" );
-		System.out.println( ta );
+		System.out.println( nta );
 		System.exit(0);
 	}
 }
