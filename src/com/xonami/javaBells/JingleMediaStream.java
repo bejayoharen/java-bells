@@ -7,8 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.Vector;
-
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ParameterPacketExtension;
@@ -85,8 +83,6 @@ public class JingleMediaStream {
 	public void startConnection( NameAndTransportAddress nta, int localRtpPort, int localRtcpPort ) throws IOException {
 		MediaDevice dev = devices.get(nta.name);
 		
-		
-		
 		MediaService mediaService = LibJitsi.getMediaService();
 		
         MediaStream mediaStream = mediaService.createMediaStream(dev);
@@ -149,16 +145,14 @@ public class JingleMediaStream {
             mediaStream.setFormat(format);
         }
 
-        // connector
-        int port = nta.transportAddress.getPort();
-
         StreamConnector connector = new DefaultStreamConnector( new DatagramSocket(localRtpPort), new DatagramSocket(localRtcpPort) );
 
         mediaStream.setConnector(connector);
 
+        int port = nta.transportAddress.getPort();
         mediaStream.setTarget( new MediaStreamTarget(
-        		new InetSocketAddress(nta.transportAddress.getAddress(), nta.transportAddress.getPort()  ),
-        		new InetSocketAddress(nta.transportAddress.getAddress(), nta.transportAddress.getPort()+1) ) );
+        		new InetSocketAddress(nta.transportAddress.getAddress(), port ),
+        		new InetSocketAddress(nta.transportAddress.getAddress(), port+1) ) );
 
         mediaStream.setName(nta.name);
 	}
