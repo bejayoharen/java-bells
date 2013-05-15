@@ -76,7 +76,6 @@ public class JavaBellsSample {
 			public void uncaughtException(Thread t, Throwable e) {
 				logger.error("In thread: ", t);
 				logger.error("Uncaught Exception: ", e);
-				System.exit(1);
 			}
 		}) ;
 		

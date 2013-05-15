@@ -21,6 +21,7 @@ import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
 import com.xonami.javaBells.IceAgent;
+import com.xonami.javaBells.JingleStream;
 import com.xonami.javaBells.JingleStreamManager;
 import com.xonami.javaBells.JinglePacketHandler;
 
@@ -96,7 +97,8 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 //            IceMediaStream stream = agent.getStream(iceAgent.getStreamName());
             
             try {
-            	jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            	JingleStream js = jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            	js.quickShow();
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }

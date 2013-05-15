@@ -18,6 +18,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import com.xonami.javaBells.DefaultJingleSession;
 import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JinglePacketHandler;
+import com.xonami.javaBells.JingleStream;
 import com.xonami.javaBells.JingleStreamManager;
 import com.xonami.javaBells.NameAndTransportAddress;
 import com.xonami.javaBells.StunTurnAddress;
@@ -150,7 +151,8 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		if(agent.getState() == IceProcessingState.COMPLETED) //FIXME what to do on failure?
         {
 			try {
-            	jingelStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            	JingleStream js = jingelStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            	js.quickShow();
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }

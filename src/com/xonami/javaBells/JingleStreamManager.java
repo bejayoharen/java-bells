@@ -39,6 +39,7 @@ public class JingleStreamManager {
 	private final CreatorEnum creator;
 	
 	private final TreeMap<String,MediaDevice> devices = new TreeMap<String,MediaDevice>();
+	private final TreeMap<String,JingleStream> jingleStreams = new TreeMap<String,JingleStream>();
 	
 	public JingleStreamManager(CreatorEnum creator) {
 		this.creator = creator;
@@ -84,7 +85,7 @@ public class JingleStreamManager {
 		return contentList;
 	}
 	
-	public boolean startStream(String name, IceAgent iceAgent) throws IOException {
+	public JingleStream startStream(String name, IceAgent iceAgent) throws IOException {
         IceMediaStream stream = iceAgent.getAgent().getStream(name);
         if( stream == null )
         	throw new IOException("Stream not found.");
@@ -108,7 +109,7 @@ public class JingleStreamManager {
         		rtcpPair.getLocalCandidate().getDatagramSocket());
 	}
 	
-	public boolean startStream( String name, TransportAddress remoteRtpAddress, TransportAddress remoteRtcpAddress, DatagramSocket rtpDatagramSocket, DatagramSocket rtcpDatagramSocket ) throws IOException {
+	public JingleStream startStream( String name, TransportAddress remoteRtpAddress, TransportAddress remoteRtcpAddress, DatagramSocket rtpDatagramSocket, DatagramSocket rtcpDatagramSocket ) throws IOException {
 		MediaDevice dev = devices.get(name);
 		
 		MediaService mediaService = LibJitsi.getMediaService();
@@ -185,7 +186,9 @@ public class JingleStreamManager {
         
         mediaStream.start();
         
-        return true;
+        JingleStream js = new JingleStream( name, mediaStream, this );
+        jingleStreams.put( name, js );
+        return js;
 	}
 	
     public static PayloadTypePacketExtension formatToPayloadType(
