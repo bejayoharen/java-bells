@@ -86,8 +86,6 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
                 System.out.println(stream.getCheckList());
             }
             ////////////
-
-//            IceMediaStream stream = agent.getStream(iceAgent.getStreamName());
             
             try {
             	JingleStream js = jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
@@ -95,17 +93,6 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }
-
-            
-//            ContentPacketExtension cp = iceAgent.getSelectedRemoteCandidateContent();
-//            
-//            ArrayList<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>(1);
-//            contentList.add( cp );
-//            
-//            JingleIQ transInfo = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
-//            transInfo.setAction(JingleAction.TRANSPORT_INFO);
-//            
-//            connection.sendPacket(transInfo);
         }
 	}
 }

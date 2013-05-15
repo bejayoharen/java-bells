@@ -86,56 +86,6 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 			closeSession();
 		}
 	}
-//	@Override
-//	public void handleSessionAccept(JingleIQ jiq) {
-//		if( !this.checkAndAck(jiq) )
-//			return;
-//		iceAgent.startConnectivityEstablishment();
-//	}
-//	@Override
-//	public void handleTransportInfo(JingleIQ jiq) { //FIXME: don't try to complete the connection with this call.
-//		System.out.println( jiq.toXML() );
-//		if( jingleMediaStream == null ) {
-//			connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId));
-//			closeSession();
-//		}
-//		if( !this.checkAndAck(jiq) )
-//			return;
-//		
-//		//hotness! we should now be able to start talking
-//		try {
-//			iceAgent.createStream(9090, "video");
-//			NameAndTransportAddress nta = iceAgent.getTransportAddressFromRemoteCandidate(jiq);
-//			if( nta == null ) {
-//				connection.sendPacket(JinglePacketFactory.createCancel(myJid, peerJid, sessionId) );
-//				closeSession();
-//			} else {
-//				state = SessionState.OPEN;
-//			}
-//			CandidatePair cp = iceAgent.getCandidatePairFromRemoteCandidate( jiq );
-//			
-//			System.out.println( "=============" );
-//			System.out.println( "=============" );
-//			System.out.println( "We can now connect to this remote transport address:" );
-//			System.out.println( nta );
-//			
-//			System.out.println( "=============" );
-//			System.out.println( "=============" );
-//			System.out.println( "We can now connect to this cp:" );
-//			System.out.println( cp );
-//			System.out.println( cp.getLocalCandidate() );
-//			System.out.println( cp.getRemoteCandidate() );
-//			
-//		} catch( Exception e ) {
-//			e.printStackTrace();
-//		}
-////		System.out.println( "With these local ports:" + iceAgent.getLocalRtpPort() + " / " + iceAgent.getLocalRtpcPort() );
-//		
-////		jingleMediaStream.startConnection(nta, iceAgent.getLocalRtpPort(), iceAgent.getLocalRtpcPort());
-//		
-//
-////		System.exit(0);
-//	}
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
