@@ -15,6 +15,10 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RtpDescr
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.SendersEnum;
 
+import org.ice4j.TransportAddress;
+import org.ice4j.ice.CandidatePair;
+import org.ice4j.ice.Component;
+import org.ice4j.ice.IceMediaStream;
 import org.jitsi.service.libjitsi.LibJitsi;
 import org.jitsi.service.neomedia.DefaultStreamConnector;
 import org.jitsi.service.neomedia.MediaDirection;
@@ -29,14 +33,14 @@ import org.jitsi.service.neomedia.format.AudioMediaFormat;
 import org.jitsi.service.neomedia.format.MediaFormat;
 import org.jitsi.service.neomedia.format.MediaFormatFactory;
 
-public class JingleMediaStream {
+public class JingleStreamManager {
 	private static final DynamicPayloadTypeRegistry dynamicPayloadTypes = new DynamicPayloadTypeRegistry();
 	
 	private final CreatorEnum creator;
 	
 	private final TreeMap<String,MediaDevice> devices = new TreeMap<String,MediaDevice>();
 	
-	public JingleMediaStream(CreatorEnum creator) {
+	public JingleStreamManager(CreatorEnum creator) {
 		this.creator = creator;
 	}
 	
@@ -80,8 +84,32 @@ public class JingleMediaStream {
 		return contentList;
 	}
 	
-	public void startConnection( NameAndTransportAddress nta, int localRtpPort, int localRtcpPort ) throws IOException {
-		MediaDevice dev = devices.get(nta.name);
+	public boolean startStream(String name, IceAgent iceAgent) throws IOException {
+        IceMediaStream stream = iceAgent.getAgent().getStream(name);
+        if( stream == null )
+        	throw new IOException("Stream not found.");
+        Component rtpComponent = stream.getComponent(1);
+        Component rtcpComponent = stream.getComponent(2);
+        
+        if( rtpComponent == null )
+        	throw new IOException("RTP component not found.");
+        if( rtcpComponent == null )
+        	throw new IOException("RTCP Component not found.");
+
+        CandidatePair rtpPair = rtpComponent.getSelectedPair();
+        CandidatePair rtcpPair = rtcpComponent.getSelectedPair();
+        
+        
+        
+        return startStream( name,
+        		rtpPair.getRemoteCandidate().getHostAddress(),
+        		rtcpPair.getRemoteCandidate().getHostAddress(),
+        		rtpPair.getLocalCandidate().getDatagramSocket(),
+        		rtcpPair.getLocalCandidate().getDatagramSocket());
+	}
+	
+	public boolean startStream( String name, TransportAddress remoteRtpAddress, TransportAddress remoteRtcpAddress, DatagramSocket rtpDatagramSocket, DatagramSocket rtcpDatagramSocket ) throws IOException {
+		MediaDevice dev = devices.get(name);
 		
 		MediaService mediaService = LibJitsi.getMediaService();
 		
@@ -145,58 +173,19 @@ public class JingleMediaStream {
             mediaStream.setFormat(format);
         }
 
-        StreamConnector connector = new DefaultStreamConnector( new DatagramSocket(localRtpPort), new DatagramSocket(localRtcpPort) );
+        StreamConnector connector = new DefaultStreamConnector( rtpDatagramSocket, rtcpDatagramSocket );
 
         mediaStream.setConnector(connector);
 
-        int port = nta.transportAddress.getPort();
         mediaStream.setTarget( new MediaStreamTarget(
-        		new InetSocketAddress(nta.transportAddress.getAddress(), port ),
-        		new InetSocketAddress(nta.transportAddress.getAddress(), port+1) ) );
+        		new InetSocketAddress( remoteRtpAddress.getAddress(), remoteRtpAddress.getPort() ),
+        		new InetSocketAddress( remoteRtcpAddress.getAddress(), remoteRtcpAddress.getPort() ) ) );
 
-        mediaStream.setName(nta.name);
-	}
-	
-	@Deprecated
-	public static List<ContentPacketExtension> createContentList(MediaType mediaType, CreatorEnum creator, String contentName, SendersEnum senders) {
-//		List<ContentPacketExtension> mediaDescs = new ArrayList<ContentPacketExtension>();
-		
-		MediaService mediaService = LibJitsi.getMediaService();
-
-		MediaDevice dev = mediaService.getDefaultDevice(mediaType, MediaUseCase.CALL);
-		
-		List<MediaFormat> formats = dev.getSupportedFormats();
-		
-//		MediaDirection direction = MediaDirection.SENDRECV;
-//		
-//		List<RTPExtension> extensions = dev.getSupportedExtensions();
-		
-		
-        ContentPacketExtension content = new ContentPacketExtension();
-        RtpDescriptionPacketExtension description = new RtpDescriptionPacketExtension();
-
-        // fill in the basic content:
-        content.setCreator(creator);
-        content.setName(contentName);
-        if(senders != null && senders != SendersEnum.both)
-            content.setSenders(senders);
-
-        //RTP description
-        content.addChildExtension(description);
-        description.setMedia(formats.get(0).getMediaType().toString());
-
-        //now fill in the RTP description
-        for(MediaFormat fmt : formats)
-        {
-            description.addPayloadType( formatToPayloadType(fmt, dynamicPayloadTypes));
-        }
-
-		
-		List<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>();
-		contentList.add(content);
-		return contentList;
-
-		// code from CallPeerMediaHandlerJabberImpl.createContentList
+        mediaStream.setName(name);
+        
+        mediaStream.start();
+        
+        return true;
 	}
 	
     public static PayloadTypePacketExtension formatToPayloadType(

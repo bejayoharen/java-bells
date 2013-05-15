@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.SendersEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
@@ -27,7 +28,7 @@ import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JingleManager;
 import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleSession;
-import com.xonami.javaBells.JingleMediaStream;
+import com.xonami.javaBells.JingleStreamManager;
 import com.xonami.javaBells.StunTurnAddress;
 
 /**
@@ -246,11 +247,13 @@ public class JavaBellsSample {
 					StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 					
 					final IceAgent iceAgent = new IceAgent(true, callerJid, "video", sta.getStunAddresses(), sta.getTurnAddresses());
+					final JingleStreamManager jsm = new JingleStreamManager(CreatorEnum.initiator);
+					jsm.addDefaultMedia(MediaType.VIDEO, "video");
 					
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
-							return new CallerJingleSession(iceAgent, this, receiverJid, sid, this.connection);
+							return new CallerJingleSession(iceAgent, jsm, this, receiverJid, sid, this.connection);
 						}
 					} ;
 					
@@ -285,7 +288,7 @@ public class JavaBellsSample {
 					log( CALLER, "Ringing" );
 //					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
-					List<ContentPacketExtension> contentList = JingleMediaStream.createContentList(MediaType.VIDEO, CreatorEnum.initiator, "video", ContentPacketExtension.SendersEnum.both);
+					List<ContentPacketExtension> contentList = jsm.createContentList(SendersEnum.both);
 					iceAgent.addLocalCandidateToContents(contentList);
 					
 					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );

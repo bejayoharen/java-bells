@@ -2,6 +2,7 @@ package com.xonami.javaBellsSample;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,13 +11,17 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleAc
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import org.ice4j.ice.Agent;
+import org.ice4j.ice.CandidatePair;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
 import org.ice4j.ice.IceProcessingState;
+import org.ice4j.ice.LocalCandidate;
+import org.ice4j.ice.RemoteCandidate;
 import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
 import com.xonami.javaBells.IceAgent;
+import com.xonami.javaBells.JingleStreamManager;
 import com.xonami.javaBells.JinglePacketHandler;
 
 /**
@@ -26,14 +31,16 @@ import com.xonami.javaBells.JinglePacketHandler;
  *
  */
 public class CallerJingleSession extends DefaultJingleSession implements PropertyChangeListener {
-	private final IceAgent iceUtil;
+	private final IceAgent iceAgent;
+	private final JingleStreamManager jingleStreamManager;
 	
-	public CallerJingleSession(IceAgent iceUtil, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
+	public CallerJingleSession(IceAgent iceAgent, JingleStreamManager jingleStreamManager, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
-		this.iceUtil = iceUtil;
+		this.iceAgent = iceAgent;
+		this.jingleStreamManager = jingleStreamManager;
 		this.peerJid = peerJid;
 		
-		iceUtil.getAgent().addStateChangeListener( this );
+		iceAgent.getAgent().addStateChangeListener( this );
 	}
 
 	@Override
@@ -44,18 +51,18 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 
 		state = SessionState.NEGOTIATING_TRANSPORT;
 		
-		iceUtil.addRemoteCandidates( jiq );
-		iceUtil.startConnectivityEstablishment();
+		iceAgent.addRemoteCandidates( jiq );
+		iceAgent.startConnectivityEstablishment();
 	}
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		Agent agent = iceUtil.getAgent();
+		Agent agent = iceAgent.getAgent();
 		
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		System.out.println( "New State: " + evt.getNewValue() );
-		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceUtil.getStreamName()) );
-		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceUtil.getStreamName()) );
+		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceAgent.getStreamName()) );
+		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceAgent.getStreamName()) );
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		
         if(agent.getState() == IceProcessingState.COMPLETED) //FIXME what to do on failure?
@@ -85,16 +92,25 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
                 System.out.println(stream.getCheckList());
             }
             ////////////
+
+//            IceMediaStream stream = agent.getStream(iceAgent.getStreamName());
             
-            ContentPacketExtension cp = iceUtil.getSelectedRemoteCandidateContent();
+            try {
+            	jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            } catch( IOException ioe ) {
+            	ioe.printStackTrace(); //FIXME: deal with this.
+            }
+
             
-            ArrayList<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>(1);
-            contentList.add( cp );
-            
-            JingleIQ transInfo = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
-            transInfo.setAction(JingleAction.TRANSPORT_INFO);
-            
-            connection.sendPacket(transInfo);
+//            ContentPacketExtension cp = iceAgent.getSelectedRemoteCandidateContent();
+//            
+//            ArrayList<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>(1);
+//            contentList.add( cp );
+//            
+//            JingleIQ transInfo = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
+//            transInfo.setAction(JingleAction.TRANSPORT_INFO);
+//            
+//            connection.sendPacket(transInfo);
         }
 	}
 }
