@@ -16,13 +16,13 @@ import org.jitsi.util.event.VideoListener;
 public class JingleStream {
 	private final String name;
 	private final MediaStream mediaStream;
-	private final JingleStreamManager jingleStreamManager;
+//	private final JingleStreamManager jingleStreamManager;
 	private JPanel visualComponent;
 	
 	public JingleStream(String name, MediaStream mediaStream, JingleStreamManager jingleStreamManager) {
 		this.name = name;
 		this.mediaStream = mediaStream;
-		this.jingleStreamManager = jingleStreamManager;
+//		this.jingleStreamManager = jingleStreamManager;
 	}
 	
 	public String getName() {

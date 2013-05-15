@@ -16,7 +16,6 @@ import java.util.*;
 import javax.swing.Box;
 import javax.swing.JFrame;
 
-import org.jitsi.impl.neomedia.AudioMediaStreamImpl;
 import org.jitsi.service.libjitsi.*;
 import org.jitsi.service.neomedia.*;
 import org.jitsi.service.neomedia.device.*;

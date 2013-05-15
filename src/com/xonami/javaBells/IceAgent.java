@@ -20,7 +20,6 @@ import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
 import org.ice4j.ice.Candidate;
-import org.ice4j.ice.CandidatePair;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
 import org.ice4j.ice.NominationStrategy;
@@ -28,7 +27,6 @@ import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
 import org.ice4j.security.LongTermCredential;
-import org.jivesoftware.smack.packet.PacketExtension;
 
 
 /**
@@ -58,21 +56,21 @@ public class IceAgent {
 		this.controling = controling;
 		this.streamname = streamname;
 		agent.setControlling(controling);
-		agent.setNominationStrategy(NominationStrategy.NOMINATE_FIRST_VALID); //FIXME
+		agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
 		
 		//stun and turn
 		if( stunAddresses != null )
 			for( TransportAddress ta : stunAddresses )
-				agent.addCandidateHarvester(new StunCandidateHarvester(ta) ); //FIXME: I don't think this is the right use of username
+				agent.addCandidateHarvester(new StunCandidateHarvester(ta) );
 		
-		LongTermCredential ltr = new LongTermCredential(generateNonce(5), generateNonce(15)); //FIXME: I don't think this is the right use of username
+		LongTermCredential ltr = new LongTermCredential(generateNonce(5), generateNonce(15));
 		if( turnAddresses != null )
 			for( TransportAddress ta : turnAddresses )
 				agent.addCandidateHarvester(new TurnCandidateHarvester(ta,ltr) );
 		
 		// create streams:
 		try {
-			createStream( 9090, streamname ); //FIXME check for open port and suggest that, no?
+			createStream( 9090, streamname ); //FIXME check for open port and suggest that, no? why 9090?
 		} catch( BindException be ) {
 			throw new IOException(be);
 		}
@@ -84,16 +82,6 @@ public class IceAgent {
 	
 	public String getStreamName() {
 		return streamname;
-	}
-	
-	public String getLocalRtpPort(String stream) {
-		// FIXME
-		return null;
-	}
-
-	public String getLocalRtpcPort() {
-		// FIXME
-		return null;
 	}
 	
 	public void addRemoteCandidates(JingleIQ jiq) {
@@ -242,7 +230,7 @@ public class IceAgent {
 					candidate.setComponent(c.getComponentID());
 					candidate.setFoundation(Integer.parseInt(can.getFoundation()));
 					candidate.setGeneration(agent.getGeneration());
-					candidate.setID(String.valueOf(c.getComponentID()));//FIXME: how do we establish the ID?
+					candidate.setID(String.valueOf(c.getComponentID()));
 					candidate.setNetwork(0); //FIXME: we need to identify the network card properly.
 					TransportAddress ta = can.getTransportAddress();
 					candidate.setIP( ta.getHostAddress() );

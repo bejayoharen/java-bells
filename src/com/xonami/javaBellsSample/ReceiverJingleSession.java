@@ -8,9 +8,7 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentP
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
-import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
-import org.ice4j.ice.CandidatePair;
 import org.ice4j.ice.IceProcessingState;
 import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
@@ -20,7 +18,6 @@ import com.xonami.javaBells.IceAgent;
 import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleStream;
 import com.xonami.javaBells.JingleStreamManager;
-import com.xonami.javaBells.NameAndTransportAddress;
 import com.xonami.javaBells.StunTurnAddress;
 
 /**

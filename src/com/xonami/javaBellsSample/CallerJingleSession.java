@@ -3,20 +3,13 @@ package com.xonami.javaBellsSample;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleAction;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import org.ice4j.ice.Agent;
-import org.ice4j.ice.CandidatePair;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
 import org.ice4j.ice.IceProcessingState;
-import org.ice4j.ice.LocalCandidate;
-import org.ice4j.ice.RemoteCandidate;
 import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
