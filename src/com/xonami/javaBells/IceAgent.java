@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.List;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.CandidatePacketExtension;
@@ -97,50 +98,59 @@ public class IceAgent {
 	/** takes the remote candidates passed by the JingleIQ and incorporates that information into this ice agent. */
 	public void addRemoteCandidates(JingleIQ jiq) {
 		try {
-		for( ContentPacketExtension contentpe : jiq.getContentList() ) {
-			String name = contentpe.getName();
-			IceMediaStream ims = agent.getStream( name );
-			if( ims != null ) {
-//				System.out.println( ims + " : " + name );
-				for( IceUdpTransportPacketExtension tpe : contentpe.getChildExtensionsOfType(IceUdpTransportPacketExtension.class) ) {
-//					System.out.println( "\t" + tpe );
-					ims.setRemotePassword(tpe.getPassword());
-					ims.setRemoteUfrag(tpe.getUfrag());
-					for( CandidatePacketExtension cpe : tpe.getCandidateList() ) {
-//						System.out.println( "\t\t"+cpe );
-						InetAddress ia;
-						try {
-							ia = InetAddress.getByName(cpe.getIP());
-						} catch (UnknownHostException uhe) {
+			for (ContentPacketExtension contentpe : jiq.getContentList()) {
+				String name = contentpe.getName();
+				IceMediaStream ims = agent.getStream(name);
+				if (ims != null) {
+					// System.out.println( ims + " : " + name );
+					for (IceUdpTransportPacketExtension tpe : contentpe.getChildExtensionsOfType(IceUdpTransportPacketExtension.class)) {
+						// System.out.println( "\t" + tpe );
+						if (tpe.getPassword() != null)
+							ims.setRemotePassword(tpe.getPassword());
+						if (tpe.getUfrag() != null)
+							ims.setRemoteUfrag(tpe.getUfrag());
+
+						List<CandidatePacketExtension> candidates = tpe.getChildExtensionsOfType(CandidatePacketExtension.class);
+						if (candidates == null || candidates.size() == 0)
 							continue;
-						}
-						
-	                    TransportAddress relatedAddr = null;
-	                    if(cpe.getRelAddr() != null && cpe.getRelPort() != -1) {
-	                        relatedAddr = new TransportAddress(
-	                                cpe.getRelAddr(),
-	                                cpe.getRelPort(),
-	                                Transport.parse(cpe.getProtocol().toLowerCase()));
-	                    }
-						
-						Component component = ims.getComponent( cpe.getComponent() );
-						if( component != null ) {
-		                    RemoteCandidate relatedCandidate = component.findRemoteCandidate(relatedAddr); //FIXME: what if this is defined later?
-//							System.out.println( "\t\t\t" + component.getComponentID() );
-							component.addRemoteCandidate( new RemoteCandidate(
-									new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase())),
-									component,
-									convertType(cpe.getType()),
-									Integer.toString(cpe.getFoundation()),
-									cpe.getPriority(),
-									relatedCandidate)
-							);
+						// Sorts the remote candidates (host < reflexive <
+						// relayed) in
+						// order to create first host, then reflexive, the
+						// relayed
+						// candidates, to be able to set the relative-candidate
+						// matching the rel-addr/rel-port attribute.
+						Collections.sort(candidates);
+
+						for (CandidatePacketExtension cpe : candidates) {
+							if (cpe.getGeneration() != agent.getGeneration())
+								continue;
+							// System.out.println( "\t\t"+cpe );
+							InetAddress ia;
+							try {
+								ia = InetAddress.getByName(cpe.getIP());
+							} catch (UnknownHostException uhe) {
+								continue;
+							}
+
+							TransportAddress relatedAddr = null;
+							if (cpe.getRelAddr() != null && cpe.getRelPort() != -1) {
+								relatedAddr = new TransportAddress(cpe.getRelAddr(), cpe.getRelPort(), Transport.parse(cpe.getProtocol().toLowerCase()));
+							}
+
+							Component component = ims.getComponent(cpe.getComponent());
+							if (component != null) {
+								// we should always be able to find this b/c of the sorting we did.
+								RemoteCandidate relatedCandidate = component.findRemoteCandidate(relatedAddr);
+								// System.out.println( "\t\t\t" +
+								// component.getComponentID() );
+								component.addRemoteCandidate(new RemoteCandidate(new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase())),
+										component, convertType(cpe.getType()), Integer.toString(cpe.getFoundation()), cpe.getPriority(), relatedCandidate));
+							}
 						}
 					}
 				}
 			}
-		}
-		} catch( Exception e ) {
+		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);
 		}
