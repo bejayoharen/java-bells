@@ -5,19 +5,14 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.CandidatePacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.CandidateType;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.IceUdpTransportPacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RemoteCandidatePacketExtension;
-
 import org.ice4j.Transport;
 import org.ice4j.TransportAddress;
 import org.ice4j.ice.Agent;
@@ -39,16 +34,16 @@ import org.ice4j.ice.harvest.TurnCandidateHarvester;
  *
  */
 public class IceAgent {
-	static SecureRandom random ;
-	static {
-		try {
-			// Create a secure random number generator
-			random = SecureRandom.getInstance("SHA1PRNG");
-		} catch(NoSuchAlgorithmException e) {
-			throw new RuntimeException();
-		}
-	}
-	
+//	static SecureRandom random ;
+//	static {
+//		try {
+//			// Create a secure random number generator
+//			random = SecureRandom.getInstance("SHA1PRNG");
+//		} catch(NoSuchAlgorithmException e) {
+//			throw new RuntimeException();
+//		}
+//	}
+//	
 	private final Agent agent; //FIXME need to free this when done
 	private final boolean controling;
 	private final String streamname; //FIXME: this needs to support multiple streams
@@ -165,27 +160,27 @@ public class IceAgent {
 		}
 	}
 	
-	public ContentPacketExtension getSelectedRemoteCandidateContent() {
-		ContentPacketExtension cpe = new ContentPacketExtension(CreatorEnum.initiator, getStreamName());
-		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
-		transport.setPassword( agent.getLocalPassword() );
-		transport.setUfrag( agent.getLocalUfrag() );
-		
-        RemoteCandidate rc = agent.getSelectedRemoteCandidate(getStreamName());
-        RemoteCandidatePacketExtension rcp = new RemoteCandidatePacketExtension();
-        rcp.setComponent(rc.getParentComponent().getComponentID());
-        rcp.setFoundation(Integer.parseInt(rc.getFoundation()));
-        rcp.setGeneration(agent.getGeneration());
-        rcp.setIP(rc.getTransportAddress().getHostAddress() );
-        rcp.setPort(rc.getTransportAddress().getPort() );
-        rcp.setProtocol(rc.getTransport().name().toLowerCase());
-        rcp.setType(convertType(rc.getType()));
-        
-        transport.addCandidate(rcp);
-        cpe.addChildExtension(transport);
-
-		return cpe;
-	}
+//	public ContentPacketExtension getSelectedRemoteCandidateContent() {
+//		ContentPacketExtension cpe = new ContentPacketExtension(CreatorEnum.initiator, getStreamName());
+//		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
+//		transport.setPassword( agent.getLocalPassword() );
+//		transport.setUfrag( agent.getLocalUfrag() );
+//		
+//        RemoteCandidate rc = agent.getSelectedRemoteCandidate(getStreamName());
+//        RemoteCandidatePacketExtension rcp = new RemoteCandidatePacketExtension();
+//        rcp.setComponent(rc.getParentComponent().getComponentID());
+//        rcp.setFoundation(Integer.parseInt(rc.getFoundation()));
+//        rcp.setGeneration(agent.getGeneration());
+//        rcp.setIP(rc.getTransportAddress().getHostAddress() );
+//        rcp.setPort(rc.getTransportAddress().getPort() );
+//        rcp.setProtocol(rc.getTransport().name().toLowerCase());
+//        rcp.setType(convertType(rc.getType()));
+//        
+//        transport.addCandidate(rcp);
+//        cpe.addChildExtension(transport);
+//
+//		return cpe;
+//	}
 	
 //	/** returns the remote transport address parsed from the given jiq or null if there was a parsing problem. */
 //	public NameAndTransportAddress getTransportAddressFromRemoteCandidate(JingleIQ jiq) {
@@ -308,20 +303,20 @@ public class IceAgent {
 	
 	
 	
-	public static String generateNonce(int length) {
-		StringBuilder s = new StringBuilder( length );
-		for( int i=0; i<length; ++i ) {
-			int r = random.nextInt( 26 + 26 + 10 );
-			char c;
-			if( r >= 26 + 26 ) {
-				c = (char) ( '0' + (r-26-26) );
-			} else if( r >= 26 ) {
-				c = (char) ( 'A' + (r-26) );
-			} else {
-				c = (char) ( 'a' + r );
-			}
-			s.append( c );
-		}
-		return s.toString();
-	}
+//	public static String generateNonce(int length) {
+//		StringBuilder s = new StringBuilder( length );
+//		for( int i=0; i<length; ++i ) {
+//			int r = random.nextInt( 26 + 26 + 10 );
+//			char c;
+//			if( r >= 26 + 26 ) {
+//				c = (char) ( '0' + (r-26-26) );
+//			} else if( r >= 26 ) {
+//				c = (char) ( 'A' + (r-26) );
+//			} else {
+//				c = (char) ( 'a' + r );
+//			}
+//			s.append( c );
+//		}
+//		return s.toString();
+//	}
 }

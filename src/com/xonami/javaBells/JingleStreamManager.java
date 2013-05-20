@@ -100,7 +100,8 @@ public class JingleStreamManager {
         CandidatePair rtpPair = rtpComponent.getSelectedPair();
         CandidatePair rtcpPair = rtcpComponent.getSelectedPair();
         
-        
+        System.out.println( "RTP : L " + rtpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtpPair.getRemoteCandidate().getHostAddress() + " R " );
+        System.out.println( "RTCP: L " + rtcpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtcpPair.getRemoteCandidate().getHostAddress() + " R " );
         
         return startStream( name,
         		rtpPair.getRemoteCandidate().getHostAddress(),
