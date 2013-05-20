@@ -59,11 +59,11 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 				jingelStreamManager.addDefaultMedia( MediaType.VIDEO, "video" );
 				List<ContentPacketExtension> contentList = jingelStreamManager.createContentList(ContentPacketExtension.SendersEnum.both);
 				try {
-					iceAgent = new IceAgent(false, connection.getUser(), name, sta.getStunAddresses(), sta.getTurnAddresses());
+					iceAgent = new IceAgent(false, name, sta.getStunAddresses(), sta.getTurnAddresses());
 				} catch( IOException ioe ) {
 					throw new RuntimeException( ioe );
 				}
-				iceAgent.getAgent().addStateChangeListener(this);
+				iceAgent.addAgentStateChangeListener(this);
 				iceAgent.addLocalCandidateToContents(contentList);
 	
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
@@ -89,7 +89,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		Agent agent = iceAgent.getAgent();
+		Agent agent = (Agent) evt.getSource();
 		System.out.println( "\n\n++++++++++++++++++++++++++++\n\n" );
 		System.out.println( "New State: " + evt.getNewValue() );
 		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceAgent.getStreamName()) );

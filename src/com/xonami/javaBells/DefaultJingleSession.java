@@ -29,6 +29,7 @@ public class DefaultJingleSession implements JingleSession {
 	protected SessionState state;
 	protected String peerJid;
 	
+	/** creates a new DefaultJingleSession with the given info. */
 	public DefaultJingleSession( JinglePacketHandler jinglePacketHandler, String sessionId, XMPPConnection connection ) {
 		this.jinglePacketHandler = jinglePacketHandler;
 		this.myJid = connection.getUser();
@@ -55,53 +56,57 @@ public class DefaultJingleSession implements JingleSession {
 		return false;
 	}
 
+	/** You may want to override this method to close any Jingle Streams you have open. */
 	protected void closeSession() {
 		state = SessionState.CLOSED;
 		jinglePacketHandler.removeJingleSession(this);
 	}
 
+	/** Simply sends an ack to the given iq. */
 	public void ack( IQ iq ) {
 		IQ resp = IQ.createResultIQ(iq);
 		connection.sendPacket(resp);
 	}
 
+	/** Calls checkAndAck. */
 	public void handleContentAcept(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleContentAdd(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleContentModify(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleContentReject(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleContentRemove(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleDescriptionInfo(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleSecurityInfo(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleSessionAccept(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleSessionInfo(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
 
-	/** sets the peerJid and cancels the session. */
+	/** sets the peerJid and closes the session. Subclasses will want to
+	 * override this if they plan to handle incoming sessions. */
 	public void handleSessionInitiate(JingleIQ jiq) {
 		ack(jiq);
 		peerJid = jiq.getFrom();
@@ -110,32 +115,32 @@ public class DefaultJingleSession implements JingleSession {
 		closeSession();
 	}
 
-	/** sets the state to closed. */
+	/** Closes the session. */
 	public void handleSessionTerminate(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
 		closeSession();
 	}
-
-	
+	/** Calls checkAndAck. */
 	public void handleTransportAccept(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Calls checkAndAck. */
 	public void handleTransportInfo(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
-
+	/** Closes the session. */
 	public void handleTransportReject(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
 		closeSession();
 	}
-
+	/** Calls checkAndAck. */
 	public void handleSessionReplace(JingleIQ jiq) {
 		checkAndAck(jiq);
 	}
 
+	/** returns the sessionId for the current session. */
 	@Override
 	public String getSessionId() {
 		return sessionId;

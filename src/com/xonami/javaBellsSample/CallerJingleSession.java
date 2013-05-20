@@ -34,7 +34,7 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 		this.jingleStreamManager = jingleStreamManager;
 		this.peerJid = peerJid;
 		
-		iceAgent.getAgent().addStateChangeListener( this );
+		iceAgent.addAgentStateChangeListener( this );
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 	
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
-		Agent agent = iceAgent.getAgent();
+		Agent agent = (Agent) evt.getSource();
 		
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		System.out.println( "New State: " + evt.getNewValue() );

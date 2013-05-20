@@ -245,7 +245,7 @@ public class JavaBellsSample {
 					connection.connect();
 					StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 					
-					final IceAgent iceAgent = new IceAgent(true, callerJid, "video", sta.getStunAddresses(), sta.getTurnAddresses());
+					final IceAgent iceAgent = new IceAgent(true, "video", sta.getStunAddresses(), sta.getTurnAddresses());
 					final JingleStreamManager jsm = new JingleStreamManager(CreatorEnum.initiator);
 					jsm.addDefaultMedia(MediaType.VIDEO, "video");
 					

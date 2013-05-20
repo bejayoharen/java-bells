@@ -1,5 +1,6 @@
 package com.xonami.javaBells;
 
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
@@ -22,15 +23,15 @@ import org.ice4j.ice.Agent;
 import org.ice4j.ice.Candidate;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
+import org.ice4j.ice.IceProcessingState;
 import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
-import org.ice4j.security.LongTermCredential;
 
 
 /**
- * This class is essentially a wrapper for org.ice4j.ice.Agent with some utilities
+ * IceAgent is essentially a wrapper for org.ice4j.ice.Agent with some utilities
  * to translate jingle iq data to and from that class.
  * 
  * @author bjorn
@@ -49,9 +50,10 @@ public class IceAgent {
 	
 	private final Agent agent; //FIXME need to free this when done
 	private final boolean controling;
-	private final String streamname;
+	private final String streamname; //FIXME: this needs to support multiple streams
 	
-	public IceAgent( final boolean controling, String username, final String streamname, TransportAddress stunAddresses[], TransportAddress turnAddresses[] ) throws IOException {
+	/** creates an ice agent with the given parameters. */
+	public IceAgent( final boolean controling, final String streamname, TransportAddress stunAddresses[], TransportAddress turnAddresses[] ) throws IOException {
 		this.agent = new Agent();
 		this.controling = controling;
 		this.streamname = streamname;
@@ -63,28 +65,38 @@ public class IceAgent {
 			for( TransportAddress ta : stunAddresses )
 				agent.addCandidateHarvester(new StunCandidateHarvester(ta) );
 		
-		LongTermCredential ltr = new LongTermCredential(generateNonce(5), generateNonce(15));
+//		LongTermCredential ltr = new LongTermCredential(generateNonce(5), generateNonce(15));
 		if( turnAddresses != null )
 			for( TransportAddress ta : turnAddresses )
-				agent.addCandidateHarvester(new TurnCandidateHarvester(ta,ltr) );
+				agent.addCandidateHarvester(new TurnCandidateHarvester(ta) );
 		
 		// create streams:
 		try {
+			//FIXME: create one audio and one video stream.
 			createStream( 9090, streamname ); //FIXME check for open port and suggest that, no? why 9090?
 		} catch( BindException be ) {
 			throw new IOException(be);
 		}
 	}
-	
-	public Agent getAgent() {
+	/** returns the underlying agent object. */
+	Agent getAgent() {
 		return agent;
 	}
-	
+	/** returns the current processing state. */
+	public IceProcessingState getState() {
+		return agent.getState();
+	}
+	/** listens for changes in processing state */
+	public void addAgentStateChangeListener( PropertyChangeListener pcl ) {
+		agent.addStateChangeListener(pcl);
+	}
+	//FIXME: multiple streams need to be supported.
 	public String getStreamName() {
 		return streamname;
 	}
-	
+	/** takes the remote candidates passed by the JingleIQ and incorporates that information into this ice agent. */
 	public void addRemoteCandidates(JingleIQ jiq) {
+		try {
 		for( ContentPacketExtension contentpe : jiq.getContentList() ) {
 			String name = contentpe.getName();
 			IceMediaStream ims = agent.getStream( name );
@@ -102,8 +114,18 @@ public class IceAgent {
 						} catch (UnknownHostException uhe) {
 							continue;
 						}
+						
+	                    TransportAddress relatedAddr = null;
+	                    if(cpe.getRelAddr() != null && cpe.getRelPort() != -1) {
+	                        relatedAddr = new TransportAddress(
+	                                cpe.getRelAddr(),
+	                                cpe.getRelPort(),
+	                                Transport.parse(cpe.getProtocol().toLowerCase()));
+	                    }
+						
 						Component component = ims.getComponent( cpe.getComponent() );
 						if( component != null ) {
+		                    RemoteCandidate relatedCandidate = component.findRemoteCandidate(relatedAddr); //FIXME: what if this is defined later?
 //							System.out.println( "\t\t\t" + component.getComponentID() );
 							component.addRemoteCandidate( new RemoteCandidate(
 									new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase())),
@@ -111,12 +133,16 @@ public class IceAgent {
 									convertType(cpe.getType()),
 									Integer.toString(cpe.getFoundation()),
 									cpe.getPriority(),
-									null) //FIXME: related candidate
+									relatedCandidate)
 							);
 						}
 					}
 				}
 			}
+		}
+		} catch( Exception e ) {
+			e.printStackTrace();
+			System.exit(0);
 		}
 	}
 	
@@ -223,6 +249,7 @@ public class IceAgent {
 		transport.setPassword( agent.getLocalPassword() );
 		transport.setUfrag( agent.getLocalUfrag() );
 
+		try {
 		for( IceMediaStream ims : agent.getStreams() ) {
 			for( Component c : ims.getComponents() ) {
 				for( Candidate<?> can : c.getLocalCandidates() ) {
@@ -244,9 +271,12 @@ public class IceAgent {
 					candidate.setType(convertType(can.getType()));
 					
 					transport.addCandidate(candidate);
-					//System.out.println( ">>> >> > " + candidate.toXML() );
 				}
 			}
+		}
+		} catch( Exception e ) {
+			e.printStackTrace();
+			System.exit(0);
 		}
 		return transport;
 	}
