@@ -29,15 +29,27 @@ Compiling and Running
 
 To compile and run, you can use the included ant build.xml file. All the required libraries
 are included with the distrobution. The following targets are available:
-- *compile* compiles the code
-- *clean* cleans for a fresh build
-- *test* runs a test, trying to both call and answer. It is better to use the testcall and testanswer tests seperately.
-- *testanswer* connects to the XMPP server and waits to be "Called"
-- *testcall* connects to the XMPP server and calls the answerer.
+- **compile** compiles the code
+- **clean** cleans for a fresh build
+- **test** runs a test, trying to both call and answer. It is better to use the testcall and testanswer tests seperately.
+- **testanswer** connects to the XMPP server and waits to be "Called"
+- **testcall** connects to the XMPP server and calls the answerer.
 
 For the tests to run, you will need to copy the passwords.props.template to passwords.props and fill
 in the values. Don't commit passwords.props to the repository.
 
+ToDo
+----
+
+- Source cleanup
+- There seem to still be some issues with ICE: eg right now connections don't always work on the same subnet.
+- Audio and Video. Right now only video works.
+- Multiple formats. Right now only one set of formats is supported.
+- Demonstrate selecting input devices and screen sharing.
+- Respond to XMPP messages asking if jingle is supported.
+- Respond to transport-info including ice-restarts
+- Disconnect when other party disconnects
+- Respond to error messages send from peer
 
 Source Overview
 ---------------
