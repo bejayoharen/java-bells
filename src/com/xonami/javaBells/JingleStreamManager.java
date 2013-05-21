@@ -104,8 +104,8 @@ public class JingleStreamManager {
         System.out.println( "RTCP: L " + rtcpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtcpPair.getRemoteCandidate().getTransportAddress() + " R " );
         
         return startStream( name,
-        		rtpPair.getRemoteCandidate().getHostAddress(),
-        		rtcpPair.getRemoteCandidate().getHostAddress(),
+        		rtpPair.getRemoteCandidate().getTransportAddress(),
+        		rtcpPair.getRemoteCandidate().getTransportAddress(),
         		rtpPair.getLocalCandidate().getDatagramSocket(),
         		rtcpPair.getLocalCandidate().getDatagramSocket());
 	}
