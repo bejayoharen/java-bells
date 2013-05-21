@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.List;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
+
 import org.ice4j.ice.Agent;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
@@ -27,6 +29,7 @@ import com.xonami.javaBells.JinglePacketHandler;
 public class CallerJingleSession extends DefaultJingleSession implements PropertyChangeListener {
 	private final IceAgent iceAgent;
 	private final JingleStreamManager jingleStreamManager;
+	private JingleStream jingleStream;
 	
 	public CallerJingleSession(IceAgent iceAgent, JingleStreamManager jingleStreamManager, JinglePacketHandler jinglePacketHandler, String peerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
@@ -35,6 +38,14 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 		this.peerJid = peerJid;
 		
 		iceAgent.addAgentStateChangeListener( this );
+	}
+	
+	@Override
+	protected void closeSession(Reason reason) {
+		super.closeSession(reason);
+		if( jingleStream != null )
+			jingleStream.shutdown();
+		iceAgent.freeAgent();
 	}
 
 	@Override
@@ -59,8 +70,7 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceAgent.getStreamName()) );
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		
-        if(agent.getState() == IceProcessingState.COMPLETED) //FIXME what to do on failure?
-        {
+        if(agent.getState() == IceProcessingState.COMPLETED) {
             List<IceMediaStream> streams = agent.getStreams();
 
             //////////
@@ -88,11 +98,13 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
             ////////////
             
             try {
-            	JingleStream js = jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
-            	js.quickShow();
+            	jingleStream = jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+            	jingleStream.quickShow();
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }
+        } else if( agent.getState() == IceProcessingState.FAILED ) {
+        	closeSession(Reason.CONNECTIVITY_ERROR);
         }
 	}
 }

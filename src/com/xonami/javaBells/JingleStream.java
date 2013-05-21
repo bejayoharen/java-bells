@@ -87,4 +87,8 @@ public class JingleStream {
 		}
 		visualComponent.revalidate();
 	}
+
+	public void shutdown() {
+		mediaStream.close();
+	}
 }

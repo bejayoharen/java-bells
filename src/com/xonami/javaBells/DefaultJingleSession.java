@@ -5,6 +5,7 @@ import org.jivesoftware.smack.packet.IQ;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
 
 /**
  * This is a basic implementation of a JingleSession.
@@ -52,12 +53,15 @@ public class DefaultJingleSession implements JingleSession {
 			ack(jiq);
 			return true;
 		}
-		closeSession();
+		closeSession(Reason.CONNECTIVITY_ERROR);
 		return false;
 	}
 
-	/** You may want to override this method to close any Jingle Streams you have open. */
-	protected void closeSession() {
+	/** You may want to override this method to close any Jingle Streams you have open.
+	 * To send a close message to the peer, include a reason. If reason is null, no message will be sent.*/
+	protected void closeSession(Reason reason) {
+		if( reason != null )
+			connection.sendPacket(JinglePacketFactory.createSessionTerminate(myJid, peerJid, sessionId, reason, null));
 		state = SessionState.CLOSED;
 		jinglePacketHandler.removeJingleSession(this);
 	}
@@ -112,14 +116,14 @@ public class DefaultJingleSession implements JingleSession {
 		peerJid = jiq.getFrom();
 		JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 		connection.sendPacket(iq);
-		closeSession();
+		closeSession(Reason.DECLINE);
 	}
 
 	/** Closes the session. */
 	public void handleSessionTerminate(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
-		closeSession();
+		closeSession(null);
 	}
 	/** Calls checkAndAck. */
 	public void handleTransportAccept(JingleIQ jiq) {
@@ -133,7 +137,7 @@ public class DefaultJingleSession implements JingleSession {
 	public void handleTransportReject(JingleIQ jiq) {
 		if( !checkAndAck(jiq) )
 			return;
-		closeSession();
+		closeSession(Reason.GENERAL_ERROR);
 	}
 	/** Calls checkAndAck. */
 	public void handleSessionReplace(JingleIQ jiq) {

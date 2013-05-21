@@ -89,8 +89,8 @@ public class JingleStreamManager {
         IceMediaStream stream = iceAgent.getAgent().getStream(name);
         if( stream == null )
         	throw new IOException("Stream not found.");
-        Component rtpComponent = stream.getComponent(1);
-        Component rtcpComponent = stream.getComponent(2);
+        Component rtpComponent = stream.getComponent(org.ice4j.ice.Component.RTP);
+        Component rtcpComponent = stream.getComponent(org.ice4j.ice.Component.RTCP);
         
         if( rtpComponent == null )
         	throw new IOException("RTP component not found.");
@@ -99,6 +99,8 @@ public class JingleStreamManager {
 
         CandidatePair rtpPair = rtpComponent.getSelectedPair();
         CandidatePair rtcpPair = rtcpComponent.getSelectedPair();
+        
+        
         
         System.out.println( "RTP : L " + rtpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtpPair.getRemoteCandidate().getHostAddress() + " R " );
         System.out.println( "RTCP: L " + rtcpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtcpPair.getRemoteCandidate().getHostAddress() + " R " );

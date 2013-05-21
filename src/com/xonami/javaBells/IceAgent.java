@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.net.BindException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,6 +26,7 @@ import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
+//import org.ice4j.security.LongTermCredential;
 
 
 /**
@@ -34,16 +37,20 @@ import org.ice4j.ice.harvest.TurnCandidateHarvester;
  *
  */
 public class IceAgent {
-//	static SecureRandom random ;
-//	static {
-//		try {
-//			// Create a secure random number generator
-//			random = SecureRandom.getInstance("SHA1PRNG");
-//		} catch(NoSuchAlgorithmException e) {
-//			throw new RuntimeException();
-//		}
-//	}
-//	
+	static SecureRandom random ;
+	static {
+		try {
+			// Create a secure random number generator
+			random = SecureRandom.getInstance("SHA1PRNG");
+		} catch(NoSuchAlgorithmException e) {
+			throw new RuntimeException();
+		}
+	}
+	
+	static final int MIN_STREAM_PORT = 6000;
+	static final int MAX_STREAM_PORT = 9000;
+	static int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
+
 	private final Agent agent; //FIXME need to free this when done
 	private final boolean controling;
 	private final String streamname; //FIXME: this needs to support multiple streams
@@ -54,14 +61,15 @@ public class IceAgent {
 		this.controling = controling;
 		this.streamname = streamname;
 		agent.setControlling(controling);
-		agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
+		if( controling )
+			agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
 		
 		//stun and turn
 		if( stunAddresses != null )
 			for( TransportAddress ta : stunAddresses )
 				agent.addCandidateHarvester(new StunCandidateHarvester(ta) );
 		
-//		LongTermCredential ltr = new LongTermCredential(generateNonce(5), generateNonce(15));
+		//LongTermCredential ltr = new LongTermCredential("1234", "abcd" ); //generateNonce(5), generateNonce(15));
 		if( turnAddresses != null )
 			for( TransportAddress ta : turnAddresses )
 				agent.addCandidateHarvester(new TurnCandidateHarvester(ta) );
@@ -69,7 +77,7 @@ public class IceAgent {
 		// create streams:
 		try {
 			//FIXME: create one audio and one video stream.
-			createStream( 9090, streamname ); //FIXME check for open port and suggest that, no? why 9090?
+			createStream( streamname );
 		} catch( BindException be ) {
 			throw new IOException(be);
 		}
@@ -89,6 +97,9 @@ public class IceAgent {
 	//FIXME: multiple streams need to be supported.
 	public String getStreamName() {
 		return streamname;
+	}
+	public void freeAgent() {
+		agent.free();
 	}
 	/** takes the remote candidates passed by the JingleIQ and incorporates that information into this ice agent. */
 	public void addRemoteCandidates(JingleIQ jiq) {
@@ -134,7 +145,7 @@ public class IceAgent {
 
 							Component component = ims.getComponent(cpe.getComponent());
 							if (component != null) {
-								// we should always be able to find this b/c of the sorting we did.
+								// we should always be able to find this if there is one b/c of the sorting we did.
 								RemoteCandidate relatedCandidate = component.findRemoteCandidate(relatedAddr);
 								// System.out.println( "\t\t\t" +
 								// component.getComponentID() );
@@ -295,13 +306,24 @@ public class IceAgent {
 		return org.ice4j.ice.CandidateType.parse(ts);
 	}
 
-	public void createStream( int rtpPort, String name ) throws BindException, IllegalArgumentException, IOException {
+	public void createStream( String name ) throws BindException, IllegalArgumentException, IOException {
 		IceMediaStream stream = agent.createMediaStream(name);
+		int rtpPort = getStreamPort();
 		agent.createComponent(stream, Transport.UDP, rtpPort, rtpPort, rtpPort+100);
 		agent.createComponent(stream, Transport.UDP, rtpPort+1, rtpPort+1, rtpPort+101);
 	}
-	
-	
+
+	private static int getStreamPort() {
+		if( ( streamPort & 0x01 ) == 0x01 )
+			++streamPort;
+		if( streamPort >= MAX_STREAM_PORT )
+			streamPort = MIN_STREAM_PORT;
+		int r = streamPort;
+		streamPort += 2;
+		if( streamPort >= MAX_STREAM_PORT )
+			streamPort = MIN_STREAM_PORT;
+		return r;
+	}
 	
 //	public static String generateNonce(int length) {
 //		StringBuilder s = new StringBuilder( length );

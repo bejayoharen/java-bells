@@ -8,6 +8,8 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentP
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
+
 import org.ice4j.ice.Agent;
 import org.ice4j.ice.IceProcessingState;
 import org.jitsi.service.neomedia.MediaType;
@@ -32,10 +34,19 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 	private final String callerJid;
 	private IceAgent iceAgent;
 	private JingleStreamManager jingelStreamManager;
+	private JingleStream jingleStream;
 
 	public ReceiverJingleSession(JinglePacketHandler jinglePacketHandler, String callerJid, String sessionId, XMPPConnection connection) {
 		super(jinglePacketHandler, sessionId, connection);
 		this.callerJid = callerJid;
+	}
+	
+	@Override
+	protected void closeSession(Reason reason) {
+		super.closeSession(reason);
+		if( jingleStream != null )
+			jingleStream.shutdown();
+		iceAgent.freeAgent();
 	}
 
 	/** accepts the call only if it's from the caller want. */
@@ -49,6 +60,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		try {
 			if (peerJid.equals(callerJid)) {
 				System.out.println("Accepting call!");
+
 				// okay, it matched, so accept the call and start negotiating
 				
 				String name = JingleStreamManager.getContentPacketName(jiq);
@@ -77,13 +89,13 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 				// it didn't match. Reject the call.
 				JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 				connection.sendPacket(iq);
-				closeSession();
+				closeSession(Reason.DECLINE);
 			}
 		} catch( IOException ioe ) {
 			System.out.println("An error occured. Rejecting call!");
 			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 			connection.sendPacket(iq);
-			closeSession();
+			closeSession(Reason.FAILED_APPLICATION);
 		}
 	}
 
@@ -91,18 +103,22 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 	public void propertyChange(PropertyChangeEvent evt) {
 		Agent agent = (Agent) evt.getSource();
 		System.out.println( "\n\n++++++++++++++++++++++++++++\n\n" );
+		try {
+		System.out.println( agent.getStreams().iterator().next().getCheckList() );
+		} catch( Exception e ) {}
 		System.out.println( "New State: " + evt.getNewValue() );
 		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceAgent.getStreamName()) );
 		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceAgent.getStreamName()) );
 		System.out.println( "\n\n++++++++++++++++++++++++++++\n\n" );
-		if(agent.getState() == IceProcessingState.COMPLETED) //FIXME what to do on failure?
-        {
+		if(agent.getState() == IceProcessingState.COMPLETED) { //FIXME what to do on failure?
 			try {
-            	JingleStream js = jingelStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
-            	js.quickShow();
+				jingleStream = jingelStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
+				jingleStream.quickShow();
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }
+        } else if( agent.getState() == IceProcessingState.FAILED ) {
+        	closeSession(Reason.CONNECTIVITY_ERROR);
         }
 	}
 }
