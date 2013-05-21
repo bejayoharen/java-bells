@@ -148,7 +148,7 @@ public class IceAgent {
 							Component component = ims.getComponent(cpe.getComponent());
 							if (component != null) {
 								// we should always be able to find this if there is one b/c of the sorting we did.
-								RemoteCandidate relatedCandidate = component.findRemoteCandidate(relatedAddr);
+								RemoteCandidate relatedCandidate = relatedAddr != null ? component.findRemoteCandidate(relatedAddr) : null;
 								// System.out.println( "\t\t\t" +
 								// component.getComponentID() );
 								component.addRemoteCandidate(new RemoteCandidate(new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase())),
@@ -281,7 +281,7 @@ public class IceAgent {
 					candidate.setIP( ta.getHostAddress() );
 					candidate.setPort( ta.getPort() );
 					candidate.setPriority(can.getPriority());
-					candidate.setProtocol(can.getTransport().name().toLowerCase());
+					candidate.setProtocol(can.getTransport().toString());
 					if( can.getRelatedAddress() != null ) {
 						candidate.setRelAddr(can.getRelatedAddress().getHostAddress());
 						candidate.setRelPort(can.getRelatedAddress().getPort());
