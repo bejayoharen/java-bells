@@ -2,7 +2,6 @@ package com.xonami.javaBells;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -179,9 +178,7 @@ public class JingleStreamManager {
 
         mediaStream.setConnector(connector);
 
-        mediaStream.setTarget( new MediaStreamTarget(
-        		new InetSocketAddress( remoteRtpAddress.getAddress(), remoteRtpAddress.getPort() ),
-        		new InetSocketAddress( remoteRtcpAddress.getAddress(), remoteRtcpAddress.getPort() ) ) );
+        mediaStream.setTarget( new MediaStreamTarget( remoteRtpAddress, remoteRtcpAddress ) );
 
         mediaStream.setName(name);
         

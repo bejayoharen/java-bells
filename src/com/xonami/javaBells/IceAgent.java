@@ -47,6 +47,8 @@ public class IceAgent {
 		}
 	}
 	
+	private int candidateId = 0;
+	
 	static final int MIN_STREAM_PORT = 6000;
 	static final int MAX_STREAM_PORT = 9000;
 	static int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
@@ -273,7 +275,7 @@ public class IceAgent {
 					candidate.setComponent(c.getComponentID());
 					candidate.setFoundation(Integer.parseInt(can.getFoundation()));
 					candidate.setGeneration(agent.getGeneration());
-					candidate.setID(String.valueOf(c.getComponentID()));
+					candidate.setID(nextCandidateId());
 					candidate.setNetwork(0); //FIXME: we need to identify the network card properly.
 					TransportAddress ta = can.getTransportAddress();
 					candidate.setIP( ta.getHostAddress() );
@@ -323,6 +325,10 @@ public class IceAgent {
 		if( streamPort >= MAX_STREAM_PORT )
 			streamPort = MIN_STREAM_PORT;
 		return r;
+	}
+	
+	private synchronized String nextCandidateId() {
+		return String.valueOf(++candidateId);
 	}
 	
 //	public static String generateNonce(int length) {
