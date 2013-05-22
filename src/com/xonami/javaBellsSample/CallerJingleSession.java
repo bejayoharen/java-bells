@@ -66,8 +66,11 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 		
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		System.out.println( "New State: " + evt.getNewValue() );
-		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceAgent.getStreamName()) );
-		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceAgent.getStreamName()) );
+		for( String s : iceAgent.getStreamNames() ) {
+			System.out.println("Stream          : " + s );
+			System.out.println("Local Candidate : " + agent.getSelectedLocalCandidate(s));
+			System.out.println("Remote Candidate: " + agent.getSelectedRemoteCandidate(s));
+		}
 		System.out.println( "-------------- Caller - Agent Property Change - -----------------" );
 		
         if(agent.getState() == IceProcessingState.COMPLETED) {
@@ -98,8 +101,10 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
             ////////////
             
             try {
-            	jingleStream = jingleStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
-            	jingleStream.quickShow();
+            	for( String s : iceAgent.getStreamNames() ) {
+					jingleStream = jingleStreamManager.startStream(s, iceAgent);
+					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
+				}
             } catch( IOException ioe ) {
             	ioe.printStackTrace(); //FIXME: deal with this.
             }

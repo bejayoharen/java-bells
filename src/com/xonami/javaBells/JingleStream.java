@@ -8,8 +8,10 @@ import java.awt.event.ContainerListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import org.jitsi.service.neomedia.AudioMediaStream;
 import org.jitsi.service.neomedia.MediaStream;
 import org.jitsi.service.neomedia.VideoMediaStream;
+import org.jitsi.service.neomedia.device.MediaDevice;
 import org.jitsi.util.event.VideoEvent;
 import org.jitsi.util.event.VideoListener;
 
@@ -30,24 +32,36 @@ public class JingleStream {
 	}
 	
 	/** quick and easy way to show the feed */
-	public void quickShow() {
+	public void quickShow(MediaDevice audioDevice) {
 		JPanel p = getVisualComponent();
-		final JFrame f = new JFrame( name );
-		f.getContentPane().add(p);
-		f.pack();
-		f.setResizable(false);
-		f.setVisible(true);
-		f.toFront();
-		p.addContainerListener( new ContainerListener() {
-			@Override
-			public void componentAdded(ContainerEvent e) {
-				f.pack();
-			}
-			@Override
-			public void componentRemoved(ContainerEvent e) {
-				f.pack();
-			}
-		} );
+		if( p != null ) {
+			final JFrame f = new JFrame( name );
+			f.getContentPane().add(p);
+			f.pack();
+			f.setResizable(false);
+			f.setVisible(true);
+			f.toFront();
+			p.addContainerListener( new ContainerListener() {
+				@Override
+				public void componentAdded(ContainerEvent e) {
+					f.pack();
+				}
+				@Override
+				public void componentRemoved(ContainerEvent e) {
+					f.pack();
+				}
+			} );
+		}
+		startAudio(audioDevice);
+	}
+	
+	/** starts the audio if this is an audio stream. */
+	public void startAudio(MediaDevice mediaDevice) {
+		if( mediaStream instanceof AudioMediaStream ) {
+			AudioMediaStream ams = ((AudioMediaStream) mediaStream);
+			ams.setDevice(mediaDevice);
+			ams.start();
+		}
 	}
 	
 	/** returns a visual component for this stream or null if this is not a video stream. */

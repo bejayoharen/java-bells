@@ -3,8 +3,10 @@ package com.xonami.javaBells;
 import java.io.IOException;
 import java.net.DatagramSocket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
@@ -43,6 +45,10 @@ public class JingleStreamManager {
 	public JingleStreamManager(CreatorEnum creator) {
 		this.creator = creator;
 	}
+
+	public Set<String> getMediaNames() {
+		return Collections.unmodifiableSet( devices.keySet() );
+	}
 	
 	public boolean addDefaultMedia( MediaType mediaType, String name ) {
 		MediaService mediaService = LibJitsi.getMediaService();
@@ -55,33 +61,47 @@ public class JingleStreamManager {
 		return true;
 	}
 	
+	public MediaDevice getDefaultAudioDevice() {
+		MediaService mediaService = LibJitsi.getMediaService();
+		MediaDevice dev = mediaService.getDefaultDevice(MediaType.AUDIO, MediaUseCase.CALL);
+		return dev;
+	}
+	
 	public List<ContentPacketExtension> createContentList(SendersEnum senders) {
 		List<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>();
 		for( Map.Entry<String,MediaDevice> e : devices.entrySet() ) {
 			String name = e.getKey();
 			MediaDevice dev = e.getValue();
-
-			List<MediaFormat> formats = dev.getSupportedFormats();
-			ContentPacketExtension content = new ContentPacketExtension();
-	        RtpDescriptionPacketExtension description = new RtpDescriptionPacketExtension();
-
-	        // fill in the basic content:
-	        content.setCreator(creator);
-	        content.setName(name);
-	        if(senders != null && senders != SendersEnum.both)
-	            content.setSenders(senders);
-
-	        //RTP description
-	        content.addChildExtension(description);
-	        description.setMedia(formats.get(0).getMediaType().toString());
-
-	        //now fill in the RTP description
-	        for(MediaFormat fmt : formats)
-	            description.addPayloadType( formatToPayloadType(fmt, dynamicPayloadTypes));
-	        
-	        contentList.add(content);
+			contentList.add( createContentPacketExtention( senders, name, dev, null ) );
 		}
 		return contentList;
+	}
+
+	public ContentPacketExtension createContentPacketExtention(SendersEnum senders, String name, MediaDevice dev, MediaFormat fmt) {
+		ContentPacketExtension content = new ContentPacketExtension();
+		RtpDescriptionPacketExtension description = new RtpDescriptionPacketExtension();
+
+		// fill in the basic content:
+		content.setCreator(creator);
+		content.setName(name);
+		if (senders != null && senders != SendersEnum.both)
+			content.setSenders(senders);
+
+		// RTP description
+		content.addChildExtension(description);
+
+		// now fill in the RTP description
+		if (fmt == null) {
+			List<MediaFormat> formats = dev.getSupportedFormats();
+			description.setMedia(formats.get(0).getMediaType().toString());
+			for (MediaFormat mf : formats)
+				description.addPayloadType(formatToPayloadType(mf, dynamicPayloadTypes));
+		} else {
+			description.setMedia(fmt.getMediaType().toString());
+			description.addPayloadType(formatToPayloadType(fmt, dynamicPayloadTypes));
+		}
+
+		return content;
 	}
 	
 	public JingleStream startStream(String name, IceAgent iceAgent) throws IOException {
@@ -99,6 +119,7 @@ public class JingleStreamManager {
         CandidatePair rtpPair = rtpComponent.getSelectedPair();
         CandidatePair rtcpPair = rtcpComponent.getSelectedPair();
         
+        //FIXME:
         System.out.println( "RTP : L " + rtpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtpPair.getRemoteCandidate().getTransportAddress() + " R " );
         System.out.println( "RTCP: L " + rtcpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtcpPair.getRemoteCandidate().getTransportAddress() + " R " );
         
@@ -231,25 +252,74 @@ public class JingleStreamManager {
 
         return ptExt;
     }
-    
-    /** Checks the content packet of the jingle iq and returns its name. If there
-     * is a problem with the formatting of the content packet or jingle IQ an
-     * IOException is thrown.
-     * 
-     * @param jiq
-     * @return the name of the contentpacket
-     * @throws IOException if the name cannot be found
-     */
-	public static String getContentPacketName(JingleIQ jiq) throws IOException {
+    /** Parses the incoming session initiate and sets up a local stream as required.
+     * Returns a new list of ContentPacketExtention representing the accepted content
+     * of the stream. Returns null if no compatible stream was found.
+     * @param jiq the jingle IQ containing the request to parse
+     * @param senders who is sending and receiving media?
+     * @throws IOException if the packets are not correctly parsed. */
+	public List<ContentPacketExtension> parseSessionInitiate(JingleIQ jiq, SendersEnum senders) throws IOException {
 		String name = null;
+		String toclean = null;
 		List<ContentPacketExtension> cpes = jiq.getContentList();
-		for( ContentPacketExtension cpe : cpes ) {
-			if( name != null )
-				throw new IOException();
-			name = cpe.getName();
+		List<ContentPacketExtension> ret = new ArrayList<ContentPacketExtension>();
+		try {
+			for( ContentPacketExtension cpe : cpes ) {
+				toclean = name = cpe.getName();
+				if( name == null )
+					throw new IOException();
+				
+//				SendersEnum senders = cpe.getSenders();
+//				CreatorEnum creator = cpe.getCreator();
+				String media = null;
+				
+				List<RtpDescriptionPacketExtension> descriptions = cpe.getChildExtensionsOfType(RtpDescriptionPacketExtension.class);
+				
+				for( RtpDescriptionPacketExtension description : descriptions ) {
+					media = description.getMedia();
+					if( "audio".equals(media) ) {
+						if( !addDefaultMedia( MediaType.AUDIO, name ) )
+							throw new IOException( "Could not create audio device" );
+					} else if( "video".equals(media) ) {
+						if( !addDefaultMedia( MediaType.VIDEO, name ) )
+							throw new IOException( "Could not create video device" );
+					} else {
+						throw new IOException( "Unknown media type: " + media );
+					}
+					List<PayloadTypePacketExtension> payloadTypes = description.getPayloadTypes();
+					for( PayloadTypePacketExtension payloadType : payloadTypes ) {
+						MediaFormat mf = getSupportedFormat( name, payloadType );
+						if( mf == null )
+							continue; //no match
+						ret.add( createContentPacketExtention( senders, name, devices.get(name), mf ) );
+						toclean = null;
+						break; //stop on first match
+					}
+				}
+				if( media == null )
+					throw new IOException();
+			}
+			if( ret.size() == 0 )
+				return null;
+			return ret;
+		} finally {
+			if( toclean != null )
+				devices.remove(toclean);
 		}
-		if( name == null )
-			throw new IOException();
-		return name;
 	}
+	private MediaFormat getSupportedFormat( String name, PayloadTypePacketExtension payloadType ) {
+		MediaDevice dev = devices.get(name);
+
+		for( MediaFormat mf : dev.getSupportedFormats() ) {
+			if( ( mf.getRTPPayloadType() == MediaFormat.RTP_PAYLOAD_TYPE_UNKNOWN || mf.getRTPPayloadType() == payloadType.getID() ) //FIXME: will this work for locally defined ids?
+					&& mf.getClockRateString().equals( String.valueOf(payloadType.getClockrate())) //FIXME: does the clockrate really need to match? will the device report all available clock rates?
+					&& mf.getEncoding().equals(payloadType.getName()) ) {
+				//FIXME: we should probably check advanced attributes and format parameters, but my guess is
+				// that in most cases we can adapt.
+				return mf;
+			}
+		}
+		return null;
+	}
+
 }

@@ -12,7 +12,6 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
 
 import org.ice4j.ice.Agent;
 import org.ice4j.ice.IceProcessingState;
-import org.jitsi.service.neomedia.MediaType;
 import org.jivesoftware.smack.XMPPConnection;
 
 import com.xonami.javaBells.DefaultJingleSession;
@@ -33,7 +32,7 @@ import com.xonami.javaBells.StunTurnAddress;
 public class ReceiverJingleSession extends DefaultJingleSession implements PropertyChangeListener {
 	private final String callerJid;
 	private IceAgent iceAgent;
-	private JingleStreamManager jingelStreamManager;
+	private JingleStreamManager jingleStreamManager;
 	private JingleStream jingleStream;
 
 	public ReceiverJingleSession(JinglePacketHandler jinglePacketHandler, String callerJid, String sessionId, XMPPConnection connection) {
@@ -62,23 +61,25 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 				System.out.println("Accepting call!");
 
 				// okay, it matched, so accept the call and start negotiating
-				
-				String name = JingleStreamManager.getContentPacketName(jiq);
-				
 				StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 				
-				jingelStreamManager = new JingleStreamManager(CreatorEnum.initiator);
-				jingelStreamManager.addDefaultMedia( MediaType.VIDEO, "video" );
-				List<ContentPacketExtension> contentList = jingelStreamManager.createContentList(ContentPacketExtension.SendersEnum.both);
-				try {
-					iceAgent = new IceAgent(false, name, sta.getStunAddresses(), sta.getTurnAddresses());
-				} catch( IOException ioe ) {
-					throw new RuntimeException( ioe );
+				jingleStreamManager = new JingleStreamManager(CreatorEnum.initiator);
+				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseSessionInitiate( jiq, ContentPacketExtension.SendersEnum.both );
+
+				if( acceptedContent == null ) {
+					System.out.println("Rejecting call!");
+					// it didn't match. Reject the call.
+					closeSession(Reason.INCOMPATIBLE_PARAMETERS);
+					return;
 				}
+
+				iceAgent = new IceAgent(false, sta.getStunAddresses(), sta.getTurnAddresses());
+				iceAgent.createStreams(jingleStreamManager.getMediaNames());
+
 				iceAgent.addAgentStateChangeListener(this);
-				iceAgent.addLocalCandidateToContents(contentList);
+				iceAgent.addLocalCandidateToContents(acceptedContent);
 	
-				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, contentList);
+				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, acceptedContent);
 				connection.sendPacket(iq);
 				state = SessionState.NEGOTIATING_TRANSPORT;
 				
@@ -87,11 +88,14 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 			} else {
 				System.out.println("Rejecting call!");
 				// it didn't match. Reject the call.
-				JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
-				connection.sendPacket(iq);
 				closeSession(Reason.DECLINE);
 			}
 		} catch( IOException ioe ) {
+			System.out.println("An error occured. Rejecting call!");
+			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
+			connection.sendPacket(iq);
+			closeSession(Reason.FAILED_APPLICATION);
+		} catch( IllegalArgumentException iae ) {
 			System.out.println("An error occured. Rejecting call!");
 			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 			connection.sendPacket(iq);
@@ -102,23 +106,29 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		Agent agent = (Agent) evt.getSource();
-		System.out.println( "\n\n++++++++++++++++++++++++++++\n\n" );
+		System.out.println("\n\n++++++++++++++++++++++++++++\n\n");
 		try {
-		System.out.println( agent.getStreams().iterator().next().getCheckList() );
-		} catch( Exception e ) {}
-		System.out.println( "New State: " + evt.getNewValue() );
-		System.out.println( "Local Candidate : " + agent.getSelectedLocalCandidate(iceAgent.getStreamName()) );
-		System.out.println( "Remote Candidate: " + agent.getSelectedRemoteCandidate(iceAgent.getStreamName()) );
-		System.out.println( "\n\n++++++++++++++++++++++++++++\n\n" );
-		if(agent.getState() == IceProcessingState.COMPLETED) { //FIXME what to do on failure?
+			System.out.println(agent.getStreams().iterator().next().getCheckList());
+		} catch (Exception e) {
+		}
+		System.out.println("New State: " + evt.getNewValue());
+		for( String s : iceAgent.getStreamNames() ) {
+			System.out.println("Stream          : " + s );
+			System.out.println("Local Candidate : " + agent.getSelectedLocalCandidate(s));
+			System.out.println("Remote Candidate: " + agent.getSelectedRemoteCandidate(s));
+		}
+		System.out.println("\n\n++++++++++++++++++++++++++++\n\n");
+		if (agent.getState() == IceProcessingState.COMPLETED) {
 			try {
-				jingleStream = jingelStreamManager.startStream( iceAgent.getStreamName(), iceAgent );
-				jingleStream.quickShow();
-            } catch( IOException ioe ) {
-            	ioe.printStackTrace(); //FIXME: deal with this.
-            }
-        } else if( agent.getState() == IceProcessingState.FAILED ) {
-        	closeSession(Reason.CONNECTIVITY_ERROR);
-        }
+				for( String s : iceAgent.getStreamNames() ) {
+					jingleStream = jingleStreamManager.startStream(s, iceAgent);
+					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
+				}
+			} catch (IOException ioe) {
+				ioe.printStackTrace(); // FIXME: deal with this.
+			}
+		} else if (agent.getState() == IceProcessingState.FAILED) {
+			closeSession(Reason.CONNECTIVITY_ERROR);
+		}
 	}
 }
