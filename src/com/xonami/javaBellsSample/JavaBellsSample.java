@@ -233,8 +233,6 @@ public class JavaBellsSample {
 					log( RECEIVER, "logging on as " + username + "/" + RECEIVER );
 					connection.login(username, password, RECEIVER);
 					
-					disco.discoverInfo("admin@xmpp.xonami.com/jitsi-m0ntqn");
-					
 					//This doesn't work in my testing, so we use DNS instead.
 //					log( RECEIVER, "running exodisco" );
 //					Packet exodisco = new Packet() {
