@@ -57,7 +57,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		peerJid = jiq.getFrom();
 		// compare it to the expected caller:
 		try {
-			if (peerJid.equals(callerJid)) {
+			if (peerJid.equals(callerJid) ) {
 				System.out.println("Accepting call!");
 
 				// okay, it matched, so accept the call and start negotiating

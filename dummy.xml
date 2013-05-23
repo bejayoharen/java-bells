@@ -1,0 +1,320 @@
+<iq id="sYkeq-4"
+	to="9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Receiver"
+	from="9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Caller"
+	type="set">
+	<jingle xmlns='urn:xmpp:jingle:1' action='session-initiate'
+		initiator='9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Caller'
+		sid='4fq0rrtnsm8ml'>
+		<content creator='initiator' name='audio'>
+			<description xmlns='urn:xmpp:jingle:apps:rtp:1' media='audio'>
+				<payload-type id='96' name='opus' channels='1'
+					clockrate='48000'>
+					<parameter name='usedtx' value='1' />
+				</payload-type>
+				<payload-type id='9' name='G722' channels='1'
+					clockrate='8000' />
+				<payload-type id='97' name='SILK' channels='1'
+					clockrate='24000' />
+				<payload-type id='98' name='SILK' channels='1'
+					clockrate='16000' />
+				<payload-type id='100' name='speex' channels='1'
+					clockrate='32000' />
+				<payload-type id='102' name='speex' channels='1'
+					clockrate='16000' />
+				<payload-type id='0' name='PCMU' channels='1'
+					clockrate='8000' />
+				<payload-type id='8' name='PCMA' channels='1'
+					clockrate='8000' />
+				<payload-type id='103' name='iLBC' channels='1'
+					clockrate='8000' />
+				<payload-type id='3' name='GSM' channels='1' clockrate='8000' />
+				<payload-type id='104' name='speex' channels='1'
+					clockrate='8000' />
+				<payload-type id='101' name='telephone-event' channels='1'
+					clockrate='8000' />
+			</description>
+			<transport xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+				pwd='jg4gc5i2h11f2lkb9h8fu4k1b' ufrag='4g99h'>
+				<candidate component='1' foundation='2' generation='0' id='1'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8162'
+					priority='2113937151' protocol='udp' type='host' />
+				<candidate component='1' foundation='1' generation='0' id='2'
+					network='0' ip='192.168.2.1' port='8162' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='3' generation='0' id='3'
+					network='0' ip='192.168.1.137' port='8162' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='4' generation='0' id='4'
+					network='0' ip='67.243.37.132' port='45515' priority='1677724415'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8162' type='srflx' />
+				<candidate component='2' foundation='2' generation='0' id='5'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8163'
+					priority='2113937150' protocol='udp' type='host' />
+				<candidate component='2' foundation='1' generation='0' id='6'
+					network='0' ip='192.168.2.1' port='8163' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='3' generation='0' id='7'
+					network='0' ip='192.168.1.137' port='8163' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='4' generation='0' id='8'
+					network='0' ip='67.243.37.132' port='34137' priority='1677724414'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8163' type='srflx' />
+				<candidate component='1' foundation='2' generation='0' id='9'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8164'
+					priority='2113937151' protocol='udp' type='host' />
+				<candidate component='1' foundation='1' generation='0' id='10'
+					network='0' ip='192.168.2.1' port='8164' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='3' generation='0' id='11'
+					network='0' ip='192.168.1.137' port='8164' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='4' generation='0' id='12'
+					network='0' ip='67.243.37.132' port='43996' priority='1677724415'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8164' type='srflx' />
+				<candidate component='2' foundation='2' generation='0' id='13'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8165'
+					priority='2113937150' protocol='udp' type='host' />
+				<candidate component='2' foundation='1' generation='0' id='14'
+					network='0' ip='192.168.2.1' port='8165' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='3' generation='0' id='15'
+					network='0' ip='192.168.1.137' port='8165' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='4' generation='0' id='16'
+					network='0' ip='67.243.37.132' port='47241' priority='1677724414'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8165' type='srflx' />
+			</transport>
+		</content>
+		<content creator='initiator' name='video'>
+			<description xmlns='urn:xmpp:jingle:apps:rtp:1' media='video'>
+				<payload-type id='105' name='H264' clockrate='90000'>
+					<parameter name='profile-level-id' value='4DE01f' />
+					<parameter name='packetization-mode' value='1' />
+					<parameter name='imageattr'
+						value='send [x=[0-640],y=[0-480]] recv [x=[0-1920],y=[0-1200]]' />
+				</payload-type>
+				<payload-type id='99' name='H264' clockrate='90000'>
+					<parameter name='profile-level-id' value='4DE01f' />
+					<parameter name='imageattr'
+						value='send [x=[0-640],y=[0-480]] recv [x=[0-1920],y=[0-1200]]' />
+				</payload-type>
+			</description>
+			<transport xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+				pwd='jg4gc5i2h11f2lkb9h8fu4k1b' ufrag='4g99h'>
+				<candidate component='1' foundation='2' generation='0' id='1'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8162'
+					priority='2113937151' protocol='udp' type='host' />
+				<candidate component='1' foundation='1' generation='0' id='2'
+					network='0' ip='192.168.2.1' port='8162' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='3' generation='0' id='3'
+					network='0' ip='192.168.1.137' port='8162' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='4' generation='0' id='4'
+					network='0' ip='67.243.37.132' port='45515' priority='1677724415'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8162' type='srflx' />
+				<candidate component='2' foundation='2' generation='0' id='5'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8163'
+					priority='2113937150' protocol='udp' type='host' />
+				<candidate component='2' foundation='1' generation='0' id='6'
+					network='0' ip='192.168.2.1' port='8163' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='3' generation='0' id='7'
+					network='0' ip='192.168.1.137' port='8163' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='4' generation='0' id='8'
+					network='0' ip='67.243.37.132' port='34137' priority='1677724414'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8163' type='srflx' />
+				<candidate component='1' foundation='2' generation='0' id='9'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8164'
+					priority='2113937151' protocol='udp' type='host' />
+				<candidate component='1' foundation='1' generation='0' id='10'
+					network='0' ip='192.168.2.1' port='8164' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='3' generation='0' id='11'
+					network='0' ip='192.168.1.137' port='8164' priority='2113932031'
+					protocol='udp' type='host' />
+				<candidate component='1' foundation='4' generation='0' id='12'
+					network='0' ip='67.243.37.132' port='43996' priority='1677724415'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8164' type='srflx' />
+				<candidate component='2' foundation='2' generation='0' id='13'
+					network='0' ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='8165'
+					priority='2113937150' protocol='udp' type='host' />
+				<candidate component='2' foundation='1' generation='0' id='14'
+					network='0' ip='192.168.2.1' port='8165' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='3' generation='0' id='15'
+					network='0' ip='192.168.1.137' port='8165' priority='2113932030'
+					protocol='udp' type='host' />
+				<candidate component='2' foundation='4' generation='0' id='16'
+					network='0' ip='67.243.37.132' port='47241' priority='1677724414'
+					protocol='udp' rel-addr='192.168.1.137' rel-port='8165' type='srflx' />
+			</transport>
+		</content>
+	</jingle>
+</iq>
+
+<iq id="7z83W-4" to="9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Caller"
+	from="9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Receiver"
+	type="set">
+	<jingle xmlns='urn:xmpp:jingle:1' action='session-accept'
+		responder='9e831794-ddb0-4299-a9dc-5a6c90e714e0@xmpp.xonami.com/Receiver'
+		sid='2h0jeobfau2bk'>
+		<content creator='initiator' name='audio'>
+			<description xmlns='urn:xmpp:jingle:apps:rtp:1' media='audio'>
+				<payload-type xmlns='urn:xmpp:jingle:apps:rtp:1' id='96'
+					name='opus' channels='1' clockrate='48000'>
+					<parameter xmlns='urn:xmpp:jingle:apps:rtp:1' name='usedtx'
+						value='1' />
+				</payload-type>
+			</description>
+			<transport xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+				pwd='6qi0hukugeqm4dkrr9djimqqm2' ufrag='es0f9'>
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='2' generation='0' id='1' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6948' priority='2113937151'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='1' generation='0' id='2' network='0'
+					ip='192.168.2.1' port='6948' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='3' generation='0' id='3' network='0'
+					ip='192.168.1.137' port='6948' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='4' generation='0' id='4' network='0'
+					ip='67.243.37.132' port='46663' priority='1677724415' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6948' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='2' generation='0' id='5' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6949' priority='2113937150'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='1' generation='0' id='6' network='0'
+					ip='192.168.2.1' port='6949' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='3' generation='0' id='7' network='0'
+					ip='192.168.1.137' port='6949' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='4' generation='0' id='8' network='0'
+					ip='67.243.37.132' port='47748' priority='1677724414' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6949' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='2' generation='0' id='9' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6950' priority='2113937151'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='1' generation='0' id='10' network='0'
+					ip='192.168.2.1' port='6950' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='3' generation='0' id='11' network='0'
+					ip='192.168.1.137' port='6950' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='4' generation='0' id='12' network='0'
+					ip='67.243.37.132' port='36639' priority='1677724415' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6950' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='2' generation='0' id='13' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6951' priority='2113937150'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='1' generation='0' id='14' network='0'
+					ip='192.168.2.1' port='6951' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='3' generation='0' id='15' network='0'
+					ip='192.168.1.137' port='6951' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='4' generation='0' id='16' network='0'
+					ip='67.243.37.132' port='46025' priority='1677724414' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6951' type='srflx' />
+			</transport>
+		</content>
+		<content creator='initiator' name='video'>
+			<description xmlns='urn:xmpp:jingle:apps:rtp:1' media='video'>
+				<payload-type xmlns='urn:xmpp:jingle:apps:rtp:1' id='97'
+					name='H264' clockrate='90000'>
+					<parameter xmlns='urn:xmpp:jingle:apps:rtp:1' name='profile-level-id'
+						value='4DE01f' />
+					<parameter xmlns='urn:xmpp:jingle:apps:rtp:1' name='packetization-mode'
+						value='1' />
+					<parameter xmlns='urn:xmpp:jingle:apps:rtp:1' name='imageattr'
+						value='send [x=[0-640],y=[0-480]] recv [x=[0-1920],y=[0-1200]]' />
+				</payload-type>
+			</description>
+			<transport xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+				pwd='6qi0hukugeqm4dkrr9djimqqm2' ufrag='es0f9'>
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='2' generation='0' id='1' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6948' priority='2113937151'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='1' generation='0' id='2' network='0'
+					ip='192.168.2.1' port='6948' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='3' generation='0' id='3' network='0'
+					ip='192.168.1.137' port='6948' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='4' generation='0' id='4' network='0'
+					ip='67.243.37.132' port='46663' priority='1677724415' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6948' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='2' generation='0' id='5' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6949' priority='2113937150'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='1' generation='0' id='6' network='0'
+					ip='192.168.2.1' port='6949' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='3' generation='0' id='7' network='0'
+					ip='192.168.1.137' port='6949' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='4' generation='0' id='8' network='0'
+					ip='67.243.37.132' port='47748' priority='1677724414' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6949' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='2' generation='0' id='9' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6950' priority='2113937151'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='1' generation='0' id='10' network='0'
+					ip='192.168.2.1' port='6950' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='3' generation='0' id='11' network='0'
+					ip='192.168.1.137' port='6950' priority='2113932031' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='1' foundation='4' generation='0' id='12' network='0'
+					ip='67.243.37.132' port='36639' priority='1677724415' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6950' type='srflx' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='2' generation='0' id='13' network='0'
+					ip='fe80:0:0:0:e2f8:47ff:fe22:5482' port='6951' priority='2113937150'
+					protocol='udp' type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='1' generation='0' id='14' network='0'
+					ip='192.168.2.1' port='6951' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='3' generation='0' id='15' network='0'
+					ip='192.168.1.137' port='6951' priority='2113932030' protocol='udp'
+					type='host' />
+				<candidate xmlns='urn:xmpp:jingle:transports:ice-udp:1'
+					component='2' foundation='4' generation='0' id='16' network='0'
+					ip='67.243.37.132' port='46025' priority='1677724414' protocol='udp'
+					rel-addr='192.168.1.137' rel-port='6951' type='srflx' />
+			</transport>
+		</content>
+	</jingle>
+</iq>

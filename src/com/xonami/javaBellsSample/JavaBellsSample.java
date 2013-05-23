@@ -21,6 +21,9 @@ import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Packet;
+
+import org.jivesoftware.smackx.ServiceDiscoveryManager;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +33,8 @@ import com.xonami.javaBells.JinglePacketHandler;
 import com.xonami.javaBells.JingleSession;
 import com.xonami.javaBells.JingleStreamManager;
 import com.xonami.javaBells.StunTurnAddress;
+
+import org.jivesoftware.smackx.entitycaps.EntityCapsManager;
 
 /**
  * 
@@ -162,6 +167,23 @@ public class JavaBellsSample {
 					ConnectionConfiguration config = new ConnectionConfiguration(host);
 					XMPPConnection connection = new XMPPConnection( config );
 					connection.connect();
+					ServiceDiscoveryManager.setIdentityName("Java Bells");
+					ServiceDiscoveryManager disco = ServiceDiscoveryManager.getInstanceFor(connection);
+					EntityCapsManager ecm = EntityCapsManager.getInstanceFor(connection);
+					
+					ecm.enableEntityCaps();
+					
+					System.out.println( disco.getIdentityName() );
+					System.out.println( disco.getIdentityType() );
+
+//					disco.addFeature("http://jabber.org/protocol/caps");
+					disco.addFeature("http://jabber.org/protocol/disco#info");
+//					disco.addFeature("urn:xmpp:jingle:apps:rtp:rtp-hdrext:0");
+					disco.addFeature("urn:xmpp:jingle:1");
+					disco.addFeature("urn:xmpp:jingle:transports:ice-udp:1");
+					disco.addFeature("urn:xmpp:jingle:apps:rtp:1");
+					disco.addFeature("urn:xmpp:jingle:apps:rtp:audio");
+					disco.addFeature("urn:xmpp:jingle:apps:rtp:video");
 					
 					new JinglePacketHandler(connection) {
 						@Override
@@ -169,6 +191,20 @@ public class JavaBellsSample {
 							return new ReceiverJingleSession(this, callerJid, sid, this.connection );
 						}
 					} ;
+					
+					connection.addPacketSendingListener(
+						new PacketListener() {
+							@Override
+							public void processPacket(Packet packet) {
+								System.out.println( RECEIVER + " SENDING : " + packet.toXML() );
+							}
+						},
+						new PacketFilter() {
+							@Override
+							public boolean accept(Packet packet) {
+								return true;
+							}
+						} ) ;
 					
 					//display jingle packets
 					connection.addPacketListener( new PacketListener() {
@@ -196,6 +232,9 @@ public class JavaBellsSample {
 
 					log( RECEIVER, "logging on as " + username + "/" + RECEIVER );
 					connection.login(username, password, RECEIVER);
+					
+					disco.discoverInfo("admin@xmpp.xonami.com/jitsi-m0ntqn");
+					
 					//This doesn't work in my testing, so we use DNS instead.
 //					log( RECEIVER, "running exodisco" );
 //					Packet exodisco = new Packet() {
