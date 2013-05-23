@@ -43,13 +43,13 @@ ToDo
 
 - Source cleanup
 - There seem to still be some issues with ICE: eg right now connections don't always work on the same subnet.
-- Audio and Video. Right now only video works.
-- Multiple formats. Right now only one set of formats is supported.
+- ~~Audio and Video. Right now only video works.~~
+- ~~Multiple formats. Right now only one set of formats is supported.~~
 - Demonstrate selecting input devices and screen sharing.
 - Respond to XMPP messages asking if jingle is supported.
 - Respond to transport-info including ice-restarts
-- Disconnect when other party disconnects
-- Respond to error messages send from peer
+- Disconnect when other party disconnects from xmpp
+- Respond to error messages sent from peer
 
 Source Overview
 ---------------
