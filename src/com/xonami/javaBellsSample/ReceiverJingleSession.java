@@ -23,8 +23,9 @@ import com.xonami.javaBells.StunTurnAddress;
 
 /**
  * Handles jingle packets for the receiver.
- * In this example, we only accept sessionInitiation requests if they
- * come from the expected caller.
+ * In this example, we accept all calls, but by changing the code in
+ * accept call from, we could easily change it to only accept
+ * sessionInitiation requests if they come from the expected caller.
  * 
  * @author bjorn
  *
@@ -57,7 +58,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		peerJid = jiq.getFrom();
 		// compare it to the expected caller:
 		try {
-			if (peerJid.equals(callerJid) ) {
+			if ( acceptCallFrom(peerJid) ) {
 				System.out.println("Accepting call!");
 
 				// okay, it matched, so accept the call and start negotiating
@@ -103,6 +104,16 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		}
 	}
 
+	private boolean acceptCallFrom(String peerJid) {
+		//accept calls from the expected caller:
+		//peerJid.equals(callerJid);
+		
+		//or
+		
+		//accept all calls:
+		return true;
+	}
+
 	@Override
 	public void propertyChange(PropertyChangeEvent evt) {
 		Agent agent = (Agent) evt.getSource();
@@ -121,6 +132,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 		if (agent.getState() == IceProcessingState.COMPLETED) {
 			try {
 				for( String s : iceAgent.getStreamNames() ) {
+					System.out.println( "For Stream : " + s );
 					jingleStream = jingleStreamManager.startStream(s, iceAgent);
 					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
 				}
