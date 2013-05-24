@@ -229,13 +229,15 @@ public class JingleStreamManager {
 
         return ptExt;
     }
-    /** Parses the incoming session initiate and sets up a local stream as required.
-     * Returns a new list of ContentPacketExtention representing the accepted content
+    
+    /** Parses the incoming session-initiate or session-accept jingle iqs and
+     * and sets up a local stream as required by building the required media.
+     * Returns a new list of ContentPacketExtention representing the content
      * of the stream. Returns null if no compatible stream was found.
      * @param jiq the jingle IQ containing the request to parse
      * @param senders who is sending and receiving media?
      * @throws IOException if the packets are not correctly parsed. */
-	public List<ContentPacketExtension> parseSessionInitiate(JingleIQ jiq, SendersEnum senders) throws IOException {
+	public List<ContentPacketExtension> parseIncomingAndBuildMedia(JingleIQ jiq, SendersEnum senders) throws IOException {
 		String name = null;
 		String toclean = null;
 		List<ContentPacketExtension> cpes = jiq.getContentList();

@@ -172,13 +172,8 @@ public class JavaBellsSample {
 					EntityCapsManager ecm = EntityCapsManager.getInstanceFor(connection);
 					
 					ecm.enableEntityCaps();
-					
-					System.out.println( disco.getIdentityName() );
-					System.out.println( disco.getIdentityType() );
 
-//					disco.addFeature("http://jabber.org/protocol/caps");
 					disco.addFeature("http://jabber.org/protocol/disco#info");
-//					disco.addFeature("urn:xmpp:jingle:apps:rtp:rtp-hdrext:0");
 					disco.addFeature("urn:xmpp:jingle:1");
 					disco.addFeature("urn:xmpp:jingle:transports:ice-udp:1");
 					disco.addFeature("urn:xmpp:jingle:apps:rtp:1");
@@ -232,21 +227,6 @@ public class JavaBellsSample {
 
 					log( RECEIVER, "logging on as " + username + "/" + RECEIVER );
 					connection.login(username, password, RECEIVER);
-					
-					//This doesn't work in my testing, so we use DNS instead.
-//					log( RECEIVER, "running exodisco" );
-//					Packet exodisco = new Packet() {
-//						@Override
-//						public String toXML() {
-//							return "<iq from='" + receiverJid + "'"
-//								    + " id='" + Packet.nextID() + "'"
-//								    + " to='" + host + "'"
-//								    + " type='get'>"
-//								    + "<services xmlns='urn:xmpp:extdisco:1' type='stun'/>"
-//								    + "</iq>" ;
-//						}
-//					} ;
-//					connection.sendPacket(exodisco);
 					
 					log( RECEIVER, "Waiting..." );
 					while( running ) {
@@ -324,16 +304,13 @@ public class JavaBellsSample {
 //					}
 					
 					log( CALLER, "Ringing" );
-//					CallPeerJabberImpl callPeer = new CallPeerJabberImpl(username + "/" + RECEIVER, null);
 					
 					List<ContentPacketExtension> contentList = jsm.createContentList(SendersEnum.both);
 					iceAgent.addLocalCandidateToContents(contentList);
 					
-					//offer.add( new ContentPacketExtension( ContentPacketExtension.CreatorEnum.initiator, "session", "camera", ContentPacketExtension.SendersEnum.both ) );
-					
 		            JingleIQ sessionInitIQ = JinglePacketFactory.createSessionInitiate(
-		            		connection.getUser(), //my JID
-		            		receiverJid, //target jid
+		            		connection.getUser(),
+		            		receiverJid,
 		            		JingleIQ.generateSID(),
 		            		contentList );
 		            

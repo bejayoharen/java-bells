@@ -5,6 +5,7 @@ import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.List;
 
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.SendersEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
 
@@ -56,8 +57,15 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 
 		state = SessionState.NEGOTIATING_TRANSPORT;
 		
-		iceAgent.addRemoteCandidates( jiq );
-		iceAgent.startConnectivityEstablishment();
+		try {
+			if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both ) )
+				throw new IOException( "No incoming streams detected." );
+			iceAgent.addRemoteCandidates( jiq );
+			iceAgent.startConnectivityEstablishment();
+		} catch( IOException ioe ) {
+			ioe.printStackTrace();
+			closeSession(Reason.FAILED_APPLICATION);
+		}
 	}
 	
 	@Override

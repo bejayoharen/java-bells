@@ -65,7 +65,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 				StunTurnAddress sta = StunTurnAddress.getAddress( connection );
 				
 				jingleStreamManager = new JingleStreamManager(CreatorEnum.initiator);
-				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseSessionInitiate( jiq, ContentPacketExtension.SendersEnum.both );
+				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseIncomingAndBuildMedia( jiq, ContentPacketExtension.SendersEnum.both );
 
 				if( acceptedContent == null ) {
 					System.out.println("Rejecting call!");
