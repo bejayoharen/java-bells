@@ -46,10 +46,11 @@ ToDo
 - ~~Audio and Video. Right now only video works.~~
 - ~~Multiple formats. Right now only one set of formats is supported.~~
 - Demonstrate selecting input devices and screen sharing.
-- Respond to XMPP messages asking if jingle is supported.
+- ~~Respond to XMPP messages asking if jingle is supported.~~
 - Respond to transport-info including ice-restarts
 - Disconnect when other party disconnects from xmpp
 - Respond to error messages sent from peer
+- There are some issues with finding the stun and turn DNS servers. Falling back on Jitsi for now.
 
 Source Overview
 ---------------
