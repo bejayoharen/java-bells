@@ -24,8 +24,10 @@ import com.xonami.javaBells.StunTurnAddress;
 /**
  * Handles jingle packets for the receiver.
  * In this example, we accept all calls, but by changing the code in
- * accept call from, we could easily change it to only accept
+ * acceptCallFrom, we could easily change it to only accept
  * sessionInitiation requests if they come from the expected caller.
+ * 
+ * In this example, all XMPP exchanges are handled here.
  * 
  * @author bjorn
  *
@@ -74,7 +76,7 @@ public class ReceiverJingleSession extends DefaultJingleSession implements Prope
 					return;
 				}
 
-				iceAgent = new IceAgent(false, sta.getStunAddresses(), sta.getTurnAddresses());
+				iceAgent = new IceAgent(false, sta);
 				iceAgent.createStreams(jingleStreamManager.getMediaNames());
 
 				iceAgent.addAgentStateChangeListener(this);

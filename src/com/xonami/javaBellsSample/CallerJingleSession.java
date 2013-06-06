@@ -24,6 +24,9 @@ import com.xonami.javaBells.JinglePacketHandler;
 /**
  * handles jingle packets for the caller.
  * 
+ * The actual initiation of the session is made outside this class, but XMPP messages after that
+ * are made here.
+ * 
  * @author bjorn
  *
  */
@@ -114,7 +117,9 @@ public class CallerJingleSession extends DefaultJingleSession implements Propert
 					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
 				}
             } catch( IOException ioe ) {
-            	ioe.printStackTrace(); //FIXME: deal with this.
+            	System.out.println( "An io error occured when negotiating the call: " ) ;
+            	ioe.printStackTrace();
+            	System.exit(1);
             }
         } else if( agent.getState() == IceProcessingState.FAILED ) {
         	closeSession(Reason.CONNECTIVITY_ERROR);

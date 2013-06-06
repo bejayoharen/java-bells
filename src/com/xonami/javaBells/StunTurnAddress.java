@@ -30,7 +30,7 @@ public class StunTurnAddress {
 	 * @return
 	 */
 	public static StunTurnAddress getAddress( XMPPConnection connection ) {
-		//FIXME: my stun server is not setup correctly (it needs another IP address).
+		//FIXME: Right now we fall back on jitsi.org as stun/turn hosts. This needs to be fixed.
 		// so we fall back on jitsi for now.
 		String hosts[] = new String[] {
 //				connection.getServiceName(),

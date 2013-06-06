@@ -59,19 +59,18 @@ public class JavaBellsSample {
 	
 	private final String callerJid, receiverJid;
 	
-	boolean running = true;
-	Thread answerThread, callThread;
+	private boolean running = true;
+	private Thread answerThread, callThread;
 	
 	/** prints usage and exits. */
 	public static void usage(String name) {
 		System.out.println( "Usage: " + name + " action username password host" );
 		System.out.println( "\t action: may be CALL, ANSWER or CALL_AND_ANSWER" );
+		System.out.println( "\t best to run twice with CALL and ANSWER than CALL_AND_ANSWER" );
+		System.out.println( "\t because there is a race condition with CALL_AND_ANSWER." );
 		System.exit(1);
 	}
-	
-	/**
-	 * @param args
-	 */
+
 	public static void main(String[] args) {
 		if( args.length != 5 )
 			usage(args[0]);
@@ -88,10 +87,13 @@ public class JavaBellsSample {
 		java.util.logging.Logger l = java.util.logging.Logger.getLogger("");
 		l.setLevel(Level.WARNING);
 		
+		// -- libjitsi needs to be started
 		LibJitsi.start();
 		
+		// -- we need to initialize jingle
 		JingleManager.enableJingle();
 
+		// parse commandline args:
 		String cmd      = args[0];
 		System.out.println( "cmd: " + cmd );
 		Action action   = Action.valueOf(args[1]);
@@ -102,6 +104,7 @@ public class JavaBellsSample {
 		
 		System.out.println( "u/p @ h: " + username + " / " + password + " @ " + host);
 		
+		// start threads to actually do the work of calling/answering:
 		JavaBellsSample m = new JavaBellsSample( username, password, host );
 		if( action == Action.ANSWER || action == Action.CALL_AND_ANSWER ) {
 			m.startAnswer();
@@ -110,6 +113,7 @@ public class JavaBellsSample {
 			m.startCall();
 		}
 		
+		// stop threads when the user hits enter, cleanup and exit.
 		System.out.println( "Hit enter to stop: " );
 		while( true )
 			try {
@@ -164,10 +168,14 @@ public class JavaBellsSample {
 				try {
 					log( RECEIVER, "connecting to " + host );
 					
+					// connect to host (don't log in yet)
 					ConnectionConfiguration config = new ConnectionConfiguration(host);
 					XMPPConnection connection = new XMPPConnection( config );
 					connection.connect();
-					ServiceDiscoveryManager.setIdentityName("Java Bells");
+					// setup service discovery and entity capabilities.
+					// this ensures that other software, such as Jitsi, knows that we support
+					// ice and so on
+					//ServiceDiscoveryManager.setIdentityName("Java Bells");
 					ServiceDiscoveryManager disco = ServiceDiscoveryManager.getInstanceFor(connection);
 					EntityCapsManager ecm = EntityCapsManager.getInstanceFor(connection);
 					
@@ -180,6 +188,9 @@ public class JavaBellsSample {
 					disco.addFeature("urn:xmpp:jingle:apps:rtp:audio");
 					disco.addFeature("urn:xmpp:jingle:apps:rtp:video");
 					
+					// Handle all incoming Jingle packets with a Jingle Packet Handler.
+					// The main thing we need to do is ensure that created Jingle sessions
+					// are of our ReceiverJingleSession type.
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
@@ -187,6 +198,7 @@ public class JavaBellsSample {
 						}
 					} ;
 					
+					// display out all packets that get sent:
 					connection.addPacketSendingListener(
 						new PacketListener() {
 							@Override
@@ -201,7 +213,7 @@ public class JavaBellsSample {
 							}
 						} ) ;
 					
-					//display jingle packets
+					// display incoming jingle packets
 					connection.addPacketListener( new PacketListener() {
 						@Override
 						public void processPacket(Packet packet) {
@@ -225,9 +237,13 @@ public class JavaBellsSample {
 							return true;
 						}} );
 
+					// -- log in
 					log( RECEIVER, "logging on as " + username + "/" + RECEIVER );
 					connection.login(username, password, RECEIVER);
 					
+					// -- just hang out until we are asked to exit.
+					// the work will be done by the ReceiverJingleSession
+					// we created and applied earlier.
 					log( RECEIVER, "Waiting..." );
 					while( running ) {
 						synchronized ( this ) {
@@ -249,7 +265,7 @@ public class JavaBellsSample {
 	}
 	
 	/** starts a "caller" in another thread. The caller connects to the XMPP server,
-	 * waits for the receiver to connect, and sends them a jingle request.
+	 *  sends the "receiver" a jingle request.
 	 */
 	public void startCall() {
 		callThread = new Thread() {
@@ -258,16 +274,25 @@ public class JavaBellsSample {
 				try {
 					log( CALLER, "connecting to " + host );
 
+					// connect to the XMPP server. Don't log in yet.
 					XMPPConnection connection = new XMPPConnection( host );
 					connection.connect();
+
+					// derive stun and turn server addresses from the connection:
 					StunTurnAddress sta = StunTurnAddress.getAddress( connection );
-					
-					final IceAgent iceAgent = new IceAgent(true, sta.getStunAddresses(), sta.getTurnAddresses());
+					// create an ice agent using the stun/turn address. We will need this to figure out
+					// how to connect our clients:
+					final IceAgent iceAgent = new IceAgent(true, sta);
+					// setup our jingle stream manager using the default audio and video devices:
 					final JingleStreamManager jsm = new JingleStreamManager(CreatorEnum.initiator);
 					jsm.addDefaultMedia(MediaType.VIDEO, "video");
 					jsm.addDefaultMedia(MediaType.AUDIO, "audio");
+					// create ice streams that correspond to the jingle streams that we want
 					iceAgent.createStreams(jsm.getMediaNames());
 					
+					// Handle all incoming Jingle packets with a Jingle Packet Handler.
+					// The main thing we need to do is ensure that created Jingle sessions
+					// are of our ReceiverJingleSession type.
 					new JinglePacketHandler(connection) {
 						@Override
 						public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
@@ -275,6 +300,7 @@ public class JavaBellsSample {
 						}
 					} ;
 					
+					// display all incoming packets:
 					connection.addPacketListener( new PacketListener() {
 							@Override
 							public void processPacket(Packet packet) {
@@ -294,6 +320,7 @@ public class JavaBellsSample {
 //							return true;
 //						}} );
 					
+					// log in:
 					log( CALLER, "logging on as " + username + "/" + CALLER );
 					connection.login(username, password, CALLER);
 					
@@ -303,8 +330,8 @@ public class JavaBellsSample {
 //						collector.nextResult(100);
 //					}
 					
+					// Use Ice and JingleSessionManager to initiate session:
 					log( CALLER, "Ringing" );
-					
 					List<ContentPacketExtension> contentList = jsm.createContentList(SendersEnum.both);
 					iceAgent.addLocalCandidateToContents(contentList);
 					
@@ -318,6 +345,8 @@ public class JavaBellsSample {
 		            
 		            connection.sendPacket(sessionInitIQ);
 					
+		            // now hang out until the user requests that we exit.
+		            // The rest of the call will be handled by the CallerJingleSession we created above.
 					log( CALLER, "Waiting..." );
 					while( running ) {
 						synchronized ( this ) {

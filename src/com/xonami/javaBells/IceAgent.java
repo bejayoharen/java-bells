@@ -34,6 +34,8 @@ import org.ice4j.ice.harvest.TurnCandidateHarvester;
  * IceAgent is essentially a wrapper for org.ice4j.ice.Agent with some utilities
  * to translate jingle iq data to and from that class.
  * 
+ * Note that you must call freeAgent when you are done to ensure proper garbage collection.
+ * 
  * @author bjorn
  *
  */
@@ -54,25 +56,23 @@ public class IceAgent {
 	static final int MAX_STREAM_PORT = 9000;
 	static int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
 
-	private final Agent agent; //FIXME need to free this when done
-	private final boolean controling;
+	private final Agent agent;
 	
 	/** creates an ice agent with the given parameters. */
-	public IceAgent( final boolean controling, TransportAddress stunAddresses[], TransportAddress turnAddresses[] ) {
+	public IceAgent( final boolean controling, StunTurnAddress sta ) {
 		this.agent = new Agent();
-		this.controling = controling;
 		agent.setControlling(controling);
 		if( controling )
 			agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
 		
 		//stun and turn
-		if( stunAddresses != null )
-			for( TransportAddress ta : stunAddresses )
+		if( sta.stunAddresses != null )
+			for( TransportAddress ta : sta.stunAddresses )
 				agent.addCandidateHarvester(new StunCandidateHarvester(ta) );
 		
 		//LongTermCredential ltr = new LongTermCredential("1234", "abcd" ); //generateNonce(5), generateNonce(15));
-		if( turnAddresses != null )
-			for( TransportAddress ta : turnAddresses )
+		if( sta.turnAddresses != null )
+			for( TransportAddress ta : sta.turnAddresses )
 				agent.addCandidateHarvester(new TurnCandidateHarvester(ta) );
 	}
 	public void createStreams( Collection<String> streamnames ) throws IOException {
@@ -161,95 +161,7 @@ public class IceAgent {
 	
 	public void startConnectivityEstablishment() {
 		agent.startConnectivityEstablishment();
-		for( IceMediaStream ims : agent.getStreams() ) {
-			System.out.println( "+++++++" + controling + "+ Checklist ++++++++++++++" );//FIXME
-			System.out.println( ims.getCheckList() );
-			System.out.println( "+++++++" + controling + "+ Checklist ++++++++++++++" );//FIXME
-		}
 	}
-	
-//	public ContentPacketExtension getSelectedRemoteCandidateContent() {
-//		ContentPacketExtension cpe = new ContentPacketExtension(CreatorEnum.initiator, getStreamName());
-//		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
-//		transport.setPassword( agent.getLocalPassword() );
-//		transport.setUfrag( agent.getLocalUfrag() );
-//		
-//        RemoteCandidate rc = agent.getSelectedRemoteCandidate(getStreamName());
-//        RemoteCandidatePacketExtension rcp = new RemoteCandidatePacketExtension();
-//        rcp.setComponent(rc.getParentComponent().getComponentID());
-//        rcp.setFoundation(Integer.parseInt(rc.getFoundation()));
-//        rcp.setGeneration(agent.getGeneration());
-//        rcp.setIP(rc.getTransportAddress().getHostAddress() );
-//        rcp.setPort(rc.getTransportAddress().getPort() );
-//        rcp.setProtocol(rc.getTransport().name().toLowerCase());
-//        rcp.setType(convertType(rc.getType()));
-//        
-//        transport.addCandidate(rcp);
-//        cpe.addChildExtension(transport);
-//
-//		return cpe;
-//	}
-	
-//	/** returns the remote transport address parsed from the given jiq or null if there was a parsing problem. */
-//	public NameAndTransportAddress getTransportAddressFromRemoteCandidate(JingleIQ jiq) {
-//		ContentPacketExtension cpe = jiq.getContentForType(IceUdpTransportPacketExtension.class);
-//		if( cpe == null )
-//			return null;
-//		String name = cpe.getName();
-//		if( name == null )
-//			return null;
-//		IceUdpTransportPacketExtension transport = null;
-//		for( PacketExtension pe : cpe.getChildExtensions() ) {
-//			if( pe instanceof IceUdpTransportPacketExtension ) {
-//				transport = (IceUdpTransportPacketExtension) pe;
-//				break;
-//			}
-//		}
-//		if( transport == null )
-//			return null;
-//		RemoteCandidatePacketExtension rcp = transport.getRemoteCandidate();
-//		if( rcp == null )
-//			return null;
-//		if( rcp.getIP() == null || rcp.getProtocol() == null )
-//			return null;
-//		try {
-//			TransportAddress ta = new TransportAddress( rcp.getIP(), rcp.getPort(), Transport.parse(rcp.getProtocol()) );
-//			return new NameAndTransportAddress( name, ta );
-//		} catch( IllegalArgumentException iae ) {
-//			return null;
-//		}
-//	}
-//	
-//	public CandidatePair getCandidatePairFromRemoteCandidate(JingleIQ jiq) {
-//		ContentPacketExtension cpe = jiq.getContentForType(IceUdpTransportPacketExtension.class);
-//		if( cpe == null )
-//			return null;
-//		String name = cpe.getName();
-//		if( name == null )
-//			return null;
-//		IceUdpTransportPacketExtension transport = null;
-//		for( PacketExtension pe : cpe.getChildExtensions() ) {
-//			if( pe instanceof IceUdpTransportPacketExtension ) {
-//				transport = (IceUdpTransportPacketExtension) pe;
-//				break;
-//			}
-//		}
-//		if( transport == null )
-//			return null;
-//		RemoteCandidatePacketExtension rcp = transport.getRemoteCandidate();
-//		if( rcp == null )
-//			return null;
-//		if( rcp.getIP() == null || rcp.getProtocol() == null )
-//			return null;
-//		
-//		IceMediaStream ims = agent.getStream(name);
-//		if( ims == null )
-//			return null;
-//		System.out.println( name + " : " + agent.getLocalUfrag() + " : " + transport.getUfrag());
-//		CandidatePair cp = ims.findCandidatePair(agent.getLocalUfrag(), transport.getUfrag());
-//		System.out.println( ims.getCheckList() );
-//		return cp;
-//	}
 	
 	/**
 	 * iterates through the content list and adds corresponding ICE transport packet extensions.
