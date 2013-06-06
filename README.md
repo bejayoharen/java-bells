@@ -9,7 +9,13 @@ nor are they well documented.
 This project aims to make these features available to developers with good sample code
 and decent documentation.
 
-This library is not yet functional and is, frankly, a bit of a mess, but we're getting there.
+
+Status
+------
+
+Basic functionality is implemented for both calling out and receiving calls. The receiver can
+accept calls from other XMPP/Jingle apps like Jitsi. Some documentation,
+cleanup and testing is still required. The API may change.
 
 
 Project Goals
@@ -40,16 +46,12 @@ in the values. Don't commit passwords.props to the repository.
 ToDo
 ----
 
-- Source cleanup
 - There seem to still be some issues with ICE: eg right now connections don't always work on the same subnet.
-- ~~Audio and Video. Right now only video works.~~
-- ~~Multiple formats. Right now only one set of formats is supported.~~
 - Demonstrate selecting input devices and screen sharing.
-- ~~Respond to XMPP messages asking if jingle is supported.~~
 - Respond to transport-info including ice-restarts
 - Disconnect when other party disconnects from xmpp
 - Respond to error messages sent from peer
-- There are some issues with finding the stun and turn DNS servers. Falling back on Jitsi for now.
+- There are some issues with finding the stun and turn DNS servers. Falling back on jitsi.org servers for now.
 
 How You Can Help
 ----------------
@@ -89,3 +91,4 @@ To use Java Bells, here are the basic steps you need to follow. See the JavaBell
   method to create and return a JingleSession object that behaves the way you want. It is important to create
   your own JingleSession (usually by subclassing DefaultJingleSession) because this is the class that
   makes decisions about, for example, how to respond to incoming calls.
+- See the sample code for more details.
