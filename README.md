@@ -20,7 +20,6 @@ The goals of this project are:
 - to create an easy-to-use method of adding audio and video chat functionality to any java app.
 - to not require developers to have more than a cursory understanding of Jingle or ICE.
 - to not modify third-party code or libraries, so that this code can be kept up-to-date easily.
-- to be as minimal as possible.
 
 It is also desirable to minimize external requirements, but this is less important.
 
@@ -52,6 +51,18 @@ ToDo
 - Respond to error messages sent from peer
 - There are some issues with finding the stun and turn DNS servers. Falling back on Jitsi for now.
 
+How You Can Help
+----------------
+
+It is surprisingly easy to help. In order from easy to hard:
+
+- Star or watch this project. That will make it more popular. If you think this project is
+or might be helpful to you in the future, please star it!
+- Try it out and report problems. You can report issues via github or on the jitsi dev mailing
+list. If you use the jitsi dev mailing list, be sure to include Java-Bells in the subject.
+- Submit patches/pull requests. This is the best way to ensure issues are fixed!
+
+
 Source Overview
 ---------------
 
@@ -78,4 +89,3 @@ To use Java Bells, here are the basic steps you need to follow. See the JavaBell
   method to create and return a JingleSession object that behaves the way you want. It is important to create
   your own JingleSession (usually by subclassing DefaultJingleSession) because this is the class that
   makes decisions about, for example, how to respond to incoming calls.
-
