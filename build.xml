@@ -3,7 +3,8 @@
 		Builds Java Bells, a Jingle jibrary for java.
 	</description>
 	<property name="src" location="src" />
-	<property name="build" location="bin" />
+	<property name="build" location="build" />
+	<property name="target" location="target" />
 	<property file="passwords.props" />
 
 	<!-- jars/dependent libraries -->
@@ -35,6 +36,23 @@
 		</java>
 	</target>
 
+	<target name="jar" depends="compile">
+		<jar destfile="${target}/java-bells-no-deps.jar" basedir="${build}" includes="**" />
+		<jar destfile="${target}/java-bells-with-deps.jar">
+			<fileset dir="${build}"/>
+			<restrict>
+				<archives>
+					<zips>
+						<fileset dir="lib" includes="**/*.jar"/>
+					</zips>
+				</archives>
+			<not><name name="META-INF/*.SF" /></not>
+			<not><name name="META-INF/*.DSA" /></not>
+			<not><name name="META-INF/*.RSA" /></not>
+			</restrict>
+		</jar>
+	</target>
+
 	<target name="testanswer" depends="compile">
 		<java classname="com.xonami.javaBellsSample.JavaBellsSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
 			<arg value="JavaBellsSample" />
@@ -59,5 +77,6 @@
 
 	<target name="clean">
 		<delete dir="${build}" />
+		<delete dir="${target}" />
 	</target>
 </project>
