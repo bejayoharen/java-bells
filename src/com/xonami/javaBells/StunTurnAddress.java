@@ -30,12 +30,10 @@ public class StunTurnAddress {
 	 * @return
 	 */
 	public static StunTurnAddress getAddress( XMPPConnection connection ) {
-		//FIXME: Right now we fall back on jitsi.org as stun/turn hosts. This needs to be fixed.
-		// so we fall back on jitsi for now.
 		String hosts[] = new String[] {
-//				connection.getServiceName(),
-//				connection.getHost(),
-				"jitsi.org",
+				connection.getServiceName(),
+				connection.getHost(),
+				"jitsi.org", //fallback on jitsi.org
 		};
 		String hostsAsOneString = "";
 		for( int i=0; i<hosts.length; ++i )
