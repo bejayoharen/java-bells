@@ -52,7 +52,7 @@ public class IceAgent {
 	
 	private int candidateId = 0;
 	
-	static final int MIN_STREAM_PORT = 6000;
+	static final int MIN_STREAM_PORT = 5000;
 	static final int MAX_STREAM_PORT = 9000;
 	static int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
 
@@ -81,7 +81,7 @@ public class IceAgent {
 		}
 	}
 	/** returns the underlying agent object. */
-	Agent getAgent() {
+	public Agent getAgent() {
 		return agent;
 	}
 	/** returns the current processing state. */
@@ -91,6 +91,9 @@ public class IceAgent {
 	/** listens for changes in processing state */
 	public void addAgentStateChangeListener( PropertyChangeListener pcl ) {
 		agent.addStateChangeListener(pcl);
+	}
+	public void removeAgentStateChangeListener( PropertyChangeListener pcl ) {
+		agent.removeStateChangeListener(pcl);
 	}
 	public List<String> getStreamNames() {
 		return agent.getStreamNames();
@@ -105,9 +108,8 @@ public class IceAgent {
 				String name = contentpe.getName();
 				IceMediaStream ims = agent.getStream(name);
 				if (ims != null) {
-					// System.out.println( ims + " : " + name );
 					for (IceUdpTransportPacketExtension tpe : contentpe.getChildExtensionsOfType(IceUdpTransportPacketExtension.class)) {
-						// System.out.println( "\t" + tpe );
+						System.out.println( "\t" + tpe );
 						if (tpe.getPassword() != null)
 							ims.setRemotePassword(tpe.getPassword());
 						if (tpe.getUfrag() != null)
@@ -127,7 +129,6 @@ public class IceAgent {
 						for (CandidatePacketExtension cpe : candidates) {
 							if (cpe.getGeneration() != agent.getGeneration())
 								continue;
-							// System.out.println( "\t\t"+cpe );
 							InetAddress ia;
 							try {
 								ia = InetAddress.getByName(cpe.getIP());
@@ -144,10 +145,14 @@ public class IceAgent {
 							if (component != null) {
 								// we should always be able to find this if there is one b/c of the sorting we did.
 								RemoteCandidate relatedCandidate = relatedAddr != null ? component.findRemoteCandidate(relatedAddr) : null;
-								// System.out.println( "\t\t\t" +
-								// component.getComponentID() );
-								component.addRemoteCandidate(new RemoteCandidate(new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase())),
-										component, convertType(cpe.getType()), Integer.toString(cpe.getFoundation()), cpe.getPriority(), relatedCandidate));
+								TransportAddress ta = new TransportAddress(ia, cpe.getPort(), Transport.parse(cpe.getProtocol().toLowerCase()));
+								RemoteCandidate rc = new RemoteCandidate( ta,
+										component,
+										convertType(cpe.getType()),
+										Integer.toString(cpe.getFoundation()),
+										cpe.getPriority(),
+										relatedCandidate);
+								component.addRemoteCandidate(rc);
 							}
 						}
 					}
@@ -248,6 +253,13 @@ public class IceAgent {
 	
 	private synchronized String nextCandidateId() {
 		return String.valueOf(++candidateId);
+	}
+	public boolean hasCandidatesForAllStreams() {
+		for( String nm : agent.getStreamNames() ) {
+				if( agent.getStream(nm).getRemoteUfrag() == null )
+					return false;
+		}
+		return true;
 	}
 	
 //	public static String generateNonce(int length) {

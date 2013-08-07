@@ -37,6 +37,7 @@ public class JingleStreamManager {
 	private static final DynamicPayloadTypeRegistry dynamicPayloadTypes = new DynamicPayloadTypeRegistry();
 	
 	private final CreatorEnum creator;
+	private SendersEnum senders;
 	
 	private final TreeMap<String,MediaDevice> devices = new TreeMap<String,MediaDevice>();
 	private final TreeMap<String,JingleStream> jingleStreams = new TreeMap<String,JingleStream>();
@@ -69,6 +70,7 @@ public class JingleStreamManager {
 	}
 	
 	public List<ContentPacketExtension> createContentList(SendersEnum senders) {
+		this.senders = senders;
 		List<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>();
 		for( Map.Entry<String,MediaDevice> e : devices.entrySet() ) {
 			String name = e.getKey();
@@ -79,6 +81,7 @@ public class JingleStreamManager {
 	}
 
 	private ContentPacketExtension createContentPacketExtention(SendersEnum senders, String name, MediaDevice dev, MediaFormat fmt, int payloadId ) {
+		this.senders = senders;
 		ContentPacketExtension content = new ContentPacketExtension();
 		RtpDescriptionPacketExtension description = new RtpDescriptionPacketExtension();
 
@@ -105,12 +108,18 @@ public class JingleStreamManager {
 		return content;
 	}
 	
-	public JingleStream startStream(String name, IceAgent iceAgent) throws IOException {
+	public JingleStream startStream(String name, IceAgent iceAgent ) throws IOException {
+		if( streamNameToMediaFormats.size() == 0 ) {
+			// media has not been negotiated. This seems to happen with jitsi.
+			// we will assume our requested formats are acceptable.
+			parseIncomingAndBuildMedia( createContentList( senders ), senders );
+		}
+		
         IceMediaStream stream = iceAgent.getAgent().getStream(name);
         MediaFormat format = streamNameToMediaFormats.get(name);
         Byte payloadTypeId = streamNameToPayloadTypeId.get(name);
         if( stream == null || format == null || payloadTypeId == null )
-        	throw new IOException("Stream not found.");
+        	throw new IOException("Stream \"" + name + "\" not found.");
         Component rtpComponent = stream.getComponent(org.ice4j.ice.Component.RTP);
         Component rtcpComponent = stream.getComponent(org.ice4j.ice.Component.RTCP);
         
@@ -237,9 +246,12 @@ public class JingleStreamManager {
      * @param senders who is sending and receiving media?
      * @throws IOException if the packets are not correctly parsed. */
 	public List<ContentPacketExtension> parseIncomingAndBuildMedia(JingleIQ jiq, SendersEnum senders) throws IOException {
+		return parseIncomingAndBuildMedia(jiq.getContentList(),senders);
+	}
+	public List<ContentPacketExtension> parseIncomingAndBuildMedia(List<ContentPacketExtension> cpes, SendersEnum senders) throws IOException {
+		this.senders = senders;
 		String name = null;
 		String toclean = null;
-		List<ContentPacketExtension> cpes = jiq.getContentList();
 		List<ContentPacketExtension> ret = new ArrayList<ContentPacketExtension>();
 		try {
 			for( ContentPacketExtension cpe : cpes ) {
@@ -254,6 +266,7 @@ public class JingleStreamManager {
 				List<RtpDescriptionPacketExtension> descriptions = cpe.getChildExtensionsOfType(RtpDescriptionPacketExtension.class);
 				
 				for( RtpDescriptionPacketExtension description : descriptions ) {
+					System.out.println( description );
 					media = description.getMedia();
 					if( "audio".equals(media) ) {
 						if( !addDefaultMedia( MediaType.AUDIO, name ) )

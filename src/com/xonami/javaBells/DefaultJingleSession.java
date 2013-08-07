@@ -2,6 +2,8 @@ package com.xonami.javaBells;
 
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smack.packet.IQ.Type;
+import org.jivesoftware.smack.packet.PacketExtension;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
@@ -56,10 +58,24 @@ public class DefaultJingleSession implements JingleSession {
 		closeSession(Reason.CONNECTIVITY_ERROR);
 		return false;
 	}
+	
+	protected boolean check( JingleIQ jiq ) {
+		if( peerJid == null )
+			throw new RuntimeException("Don't call this before setting peerJid!");
+		if( state == SessionState.CLOSED )
+			return false;
+		if( peerJid.equals(jiq.getFrom()) ) {
+			return true;
+		}
+		closeSession(Reason.CONNECTIVITY_ERROR);
+		return false;
+	}
 
 	/** You may want to override this method to close any Jingle Streams you have open.
 	 * To send a close message to the peer, include a reason. If reason is null, no message will be sent.*/
 	protected void closeSession(Reason reason) {
+		if( state == SessionState.CLOSED )
+			return;
 		if( reason != null )
 			connection.sendPacket(JinglePacketFactory.createSessionTerminate(myJid, peerJid, sessionId, reason, null));
 		state = SessionState.CLOSED;
@@ -69,6 +85,25 @@ public class DefaultJingleSession implements JingleSession {
 	/** Simply sends an ack to the given iq. */
 	public void ack( IQ iq ) {
 		IQ resp = IQ.createResultIQ(iq);
+		connection.sendPacket(resp);
+	}
+	public void unsupportedInfo( IQ iq ) {
+		IQ resp = IQ.createResultIQ(iq);
+		resp.setType(Type.ERROR);
+		resp.addExtension(new PacketExtension() {
+			@Override
+			public String getElementName() {
+				return "error";
+			}
+			@Override
+			public String getNamespace() {
+				return null;
+			}
+			@Override
+			public String toXML() {
+				return "<error type='modify'><feature-not-implemented xmlns='urn:ietf:params:xml:ns:xmpp-stanzas'/><unsupported-info xmlns='urn:xmpp:jingle:errors:1'/></error>" ;
+			}
+		});
 		connection.sendPacket(resp);
 	}
 
@@ -112,6 +147,8 @@ public class DefaultJingleSession implements JingleSession {
 	/** sets the peerJid and closes the session. Subclasses will want to
 	 * override this if they plan to handle incoming sessions. */
 	public void handleSessionInitiate(JingleIQ jiq) {
+		if( state == SessionState.CLOSED )
+			return;
 		ack(jiq);
 		peerJid = jiq.getFrom();
 		JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);

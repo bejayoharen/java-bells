@@ -19,6 +19,7 @@ import org.jivesoftware.smack.packet.Packet;
  */
 public class JinglePacketHandler implements PacketListener, PacketFilter {
 	private final HashMap<String,JingleSession> jingleSessions = new HashMap<String,JingleSession>();
+	private final HashMap<String,JingleSession> deadSessions = new HashMap<String,JingleSession>();
 	protected final XMPPConnection connection;
 	
 	public JinglePacketHandler( XMPPConnection connection ) {
@@ -32,6 +33,8 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 		
 		String sid = jiq.getSID();
 		JingleSession js = jingleSessions.get(sid);
+		if( js == null )
+			js = deadSessions.get(sid);
 		if( js == null ) {
 			js = createJingleSession( sid, jiq );
 			jingleSessions.put( sid, js );
@@ -86,7 +89,9 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 	}
 	
 	public JingleSession removeJingleSession( JingleSession session ) {
-		return jingleSessions.remove( session.getSessionId() );
+		JingleSession ret = jingleSessions.remove( session.getSessionId() );
+		deadSessions.put( session.getSessionId(), session );
+		return ret;
 	}
 	
 	/**

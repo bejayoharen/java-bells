@@ -75,6 +75,38 @@
 		</java>
 	</target>
 
+	<target name="testanswer2" depends="compile">
+		<java classname="com.xonami.javaBellsSample.JavaBellsSample2" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsSample2" />
+			<arg value="ANSWER" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
+	<target name="testcall2" depends="compile">
+		<java classname="com.xonami.javaBellsSample.JavaBellsSample2" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsSample2" />
+			<arg value="CALL" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
+	<target name="testcallout" depends="compile">
+		<java classname="com.xonami.javaBellsSample.JavaBellsCallerSample" fork="true" dir="." classpath="${classpath}:${jars}:${build}">
+			<arg value="JavaBellsCallerSample" />
+			<arg value="${username}" />
+			<arg value="${password}" />
+			<arg value="${host}" />
+			<jvmarg value="-Djava.library.path=${java.library.path}:lib/native/mac" />
+		</java>
+	</target>
+
 	<target name="clean">
 		<delete dir="${build}" />
 		<delete dir="${target}" />
