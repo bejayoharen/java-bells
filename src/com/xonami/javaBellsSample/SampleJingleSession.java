@@ -93,16 +93,12 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 				// set the peerJid
 				peerJid = jiq.getFrom();
 
-				System.out.println( "--a" );
 				// okay, it matched, so accept the call and start negotiating
 				StunTurnAddress sta = StunTurnAddress.getAddress( connection );
-				System.out.println( "--a1" );
 				
 				jingleStreamManager = new JingleStreamManager(CreatorEnum.initiator);
-				System.out.println( "--a2" );
 				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseIncomingAndBuildMedia( jiq, ContentPacketExtension.SendersEnum.both );
 
-				System.out.println( "--a2" );
 				if( acceptedContent == null ) {
 					System.out.println("Rejecting call!");
 					// it didn't match. Reject the call.
@@ -110,17 +106,14 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 					return;
 				}
 
-				System.out.println( "--b" );
 				iceAgent = new IceAgent(false, sta);
 				iceAgent.createStreams(jingleStreamManager.getMediaNames());
 
 				iceAgent.addAgentStateChangeListener(this);
 				iceAgent.addLocalCandidateToContents(acceptedContent);
 
-				System.out.println( "--c" );
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, acceptedContent);
 				connection.sendPacket(iq);
-				System.out.println( "--d" );
 				state = SessionState.NEGOTIATING_TRANSPORT;
 				
 				iceAgent.addRemoteCandidates( jiq );
@@ -165,7 +158,7 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 	public void handleSessionAccept(JingleIQ jiq) {
 		switch( callMode ) {
 		case CALL:
-			System.out.println( "====:: Got session accept from " + jiq + " :: " + peerJid );
+//			System.out.println( "====:: Got session accept from " + jiq + " :: " + peerJid );
 			
 			if( peerJid == null )
 				peerJid = jiq.getFrom();
@@ -174,20 +167,20 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 			if( !checkAndAck(jiq) )
 				return;
 			
-			System.out.println( "====:: Processing accept" );
+//			System.out.println( "====:: Processing accept" );
 
 			state = SessionState.NEGOTIATING_TRANSPORT;
 			
 			try {
 				if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both ) )
 					throw new IOException( "No incoming streams detected." );
-				System.out.println( "====:: Processing accept a" );
+//				System.out.println( "====:: Processing accept a" );
 				iceAgent.addRemoteCandidates( jiq );
 				if( iceAgent.hasCandidatesForAllStreams() ) {
 					iceAgent.startConnectivityEstablishment();
-					System.out.println( "====:: Processing accept b" );
+//					System.out.println( "====:: Processing accept b" );
 				}
-				System.out.println( "====:: Processing accept c" );
+//				System.out.println( "====:: Processing accept c" );
 				active = true;
 			} catch( IOException ioe ) {
 				ioe.printStackTrace();
@@ -212,7 +205,7 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 	public void handleTransportInfo(JingleIQ jiq) {
 		switch( callMode ) {
 		case CALL:
-			System.out.println( "====:: Got transport-info from " + jiq + " :: " + peerJid );
+//			System.out.println( "====:: Got transport-info from " + jiq + " :: " + peerJid );
 			
 			if( peerJid == null )
 				peerJid = jiq.getFrom();
@@ -221,7 +214,7 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 			if( !checkAndAck(jiq) )
 				return;
 			
-			System.out.println( "====:: Processing transport-info..." );
+//			System.out.println( "====:: Processing transport-info..." );
 
 			state = SessionState.NEGOTIATING_TRANSPORT;
 			
@@ -229,13 +222,13 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 //				if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both ) )
 //					throw new IOException( "No incoming streams detected." );
 //				jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both );
-				System.out.println( "====:: Processing transport-info a" );
+//				System.out.println( "====:: Processing transport-info a" );
 				iceAgent.addRemoteCandidates( jiq );
 				if( iceAgent.hasCandidatesForAllStreams() ) {
 					iceAgent.startConnectivityEstablishment();
-					System.out.println( "====:: Processing transport-info b" );
+//					System.out.println( "====:: Processing transport-info b" );
 				}
-				System.out.println( "====:: Processing transport-info c" );
+//				System.out.println( "====:: Processing transport-info c" );
 				active = true;
 //			} catch( IOException ioe ) {
 //				ioe.printStackTrace();
