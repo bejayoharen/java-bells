@@ -1,4 +1,4 @@
-<project name="Java Bells" default="dist" basedir=".">
+<project name="Java Bells" default="jar" basedir=".">
 	<description>
 		Builds Java Bells, a Jingle jibrary for java.
 	</description>
