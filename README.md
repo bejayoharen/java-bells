@@ -35,10 +35,14 @@ Compiling and Running
 To compile and run, you can use the included ant build.xml file. All the required libraries
 are included with the distrobution. The following targets are available:
 - **compile** compiles the code
+- **jar** builds the necessary jars for use in other code
 - **clean** cleans for a fresh build
 - **test** runs a test, trying to both call and answer. It is better to use the testcall and testanswer tests seperately.
 - **testanswer** connects to the XMPP server and waits to be "Called"
-- **testcall** connects to the XMPP server and calls the answerer.
+- **testcall** connects to the XMPP server and calls the answerer
+- **testanswer2** newer version of testanswer with slightly different style.
+- **testcall2** newer version of testcall with slightly different style.
+- **testcallout** tests calling out to an external system like jitsi.
 
 For the tests to run, you will need to copy the passwords.props.template to passwords.props and fill
 in the values. Don't commit passwords.props to the repository.
