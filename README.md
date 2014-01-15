@@ -96,3 +96,9 @@ To use Java Bells, here are the basic steps you need to follow. See the JavaBell
   your own JingleSession (usually by subclassing DefaultJingleSession) because this is the class that
   makes decisions about, for example, how to respond to incoming calls.
 - See the sample code for more details.
+
+
+Support
+-------
+
+If you need help, please open a ticket here or contact me directly. I am no longer subscribed to the jitsi mailing list, but I do want to help.
