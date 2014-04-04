@@ -4,7 +4,7 @@ Java Bells
 A Jingle implementation for Java based on LibJitsi, Ice4J and Smack
 
 Jitsi implements many features that would be desirable to add to an XMPP library, including
-Jingle and ICE. Unfortunately, these features are not easily accessable to developers
+Jingle and ICE. Unfortunately, these features are not easily accessible to developers
 nor are they well documented.
 This project aims to make these features available to developers with good sample code
 and decent documentation.
@@ -29,6 +29,19 @@ The goals of this project are:
 
 It is also desirable to minimize external requirements, but this is less important.
 
+How to Use
+----------
+
+If you are interested in integrating this code with your app, I suggest you
+start by using the [Jisti app](http://jitsi.org)
+to make video calls to make sure your server is setup correctly.
+Then, use the sample code I've provided and described below
+to get one user to call themselves on the same machine. Then
+try calling from one machine to another.
+
+After you get that working,  you can easily modify it as needed and integrate into
+your awesome app.
+
 Compiling and Running
 -------------------
 
@@ -44,8 +57,9 @@ are included with the distrobution. The following targets are available:
 - **testcall2** newer version of testcall with slightly different style.
 - **testcallout** tests calling out to an external system like jitsi.
 
-For the tests to run, you will need to copy the passwords.props.template to passwords.props and fill
-in the values. Don't commit passwords.props to the repository.
+For the tests to run, you will need to copy the passwords.props.template
+to passwords.props and fill in the values. Don't commit passwords.props
+to the repository.
 
 ToDo
 ----
