@@ -19,6 +19,10 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.*;
 public class PayloadTypePacketExtension extends AbstractPacketExtension
 {
     /**
+     * The namespace.
+     */
+    public static final String NAMESPACE = "urn:xmpp:jingle:apps:rtp:1";
+    /**
      * The name of the "payload-type" element.
      */
     public static final String ELEMENT_NAME = "payload-type";
@@ -58,7 +62,7 @@ public class PayloadTypePacketExtension extends AbstractPacketExtension
      */
     public PayloadTypePacketExtension()
     {
-        super(null, ELEMENT_NAME);
+        super(NAMESPACE, ELEMENT_NAME);
     }
 
     /**

@@ -15,6 +15,11 @@ public class CandidatePacketExtension extends AbstractPacketExtension
     implements Comparable<CandidatePacketExtension>
 {
     /**
+     * The namespace.
+     */
+    public static final String NAMESPACE
+        = "urn:xmpp:jingle:transports:ice-udp:1";
+    /**
      * The name of the "candidate" element.
      */
     public static final String ELEMENT_NAME = "candidate";
@@ -94,7 +99,7 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      */
     public CandidatePacketExtension()
     {
-        super(null, ELEMENT_NAME);
+        super(NAMESPACE, ELEMENT_NAME);
     }
 
     /**
@@ -106,7 +111,7 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      */
     protected CandidatePacketExtension(String elementName)
     {
-        super(null, elementName);
+        super(NAMESPACE, elementName);
     }
 
     /**
