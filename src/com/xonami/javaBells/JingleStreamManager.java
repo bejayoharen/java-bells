@@ -302,13 +302,15 @@ public class JingleStreamManager {
 	}
 	private MediaFormat getSupportedFormat( String name, PayloadTypePacketExtension payloadType ) {
 		MediaDevice dev = devices.get(name);
+        MediaType mediaType = dev.getMediaType();
 
 		for( MediaFormat mf : dev.getSupportedFormats() ) {
-			if( ( mf.getRTPPayloadType() == MediaFormat.RTP_PAYLOAD_TYPE_UNKNOWN || mf.getRTPPayloadType() == payloadType.getID() ) //FIXME: will this work for locally defined ids?
-					&& mf.getClockRateString().equals( String.valueOf(payloadType.getClockrate())) //FIXME: does the clockrate really need to match? will the device report all available clock rates?
-					&& mf.getEncoding().equals(payloadType.getName()) ) {
+//			if( ( mf.getRTPPayloadType() == MediaFormat.RTP_PAYLOAD_TYPE_UNKNOWN || mf.getRTPPayloadType() == payloadType.getID() ) //FIXME: will this work for locally defined ids?
+//					&& mf.getClockRateString().equals( String.valueOf(payloadType.getClockrate())) //FIXME: does the clockrate really need to match? will the device report all available clock rates?
+//					&& mf.getEncoding().equals(payloadType.getName()) ) {
 				//FIXME: we should probably check advanced attributes and format parameters, but my guess is
 				// that in most cases we can adapt.
+            if (mf.matches(mediaType, payloadType.getName(), payloadType.getClockrate(), payloadType.getChannels(), null)) {//formatParameters is not used by default 
 				return mf;
 			}
 		}
