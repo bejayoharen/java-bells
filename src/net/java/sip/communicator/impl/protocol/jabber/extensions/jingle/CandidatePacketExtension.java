@@ -15,11 +15,6 @@ public class CandidatePacketExtension extends AbstractPacketExtension
     implements Comparable<CandidatePacketExtension>
 {
     /**
-     * The namespace.
-     */
-    public static final String NAMESPACE
-        = "urn:xmpp:jingle:transports:ice-udp:1";
-    /**
      * The name of the "candidate" element.
      */
     public static final String ELEMENT_NAME = "candidate";
@@ -99,7 +94,7 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      */
     public CandidatePacketExtension()
     {
-        super(NAMESPACE, ELEMENT_NAME);
+        super(null, ELEMENT_NAME);
     }
 
     /**
@@ -111,7 +106,7 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      */
     protected CandidatePacketExtension(String elementName)
     {
-        super(NAMESPACE, elementName);
+        super(null, elementName);
     }
 
     /**
@@ -139,7 +134,7 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      *
      * @param foundation the candidate foundation as defined in ICE-CORE.
      */
-    public void setFoundation(int foundation)
+    public void setFoundation(String foundation)
     {
         super.setAttribute(FOUNDATION_ATTR_NAME, foundation);
     }
@@ -149,9 +144,9 @@ public class CandidatePacketExtension extends AbstractPacketExtension
      *
      * @return the candidate foundation as defined in ICE-CORE.
      */
-    public int getFoundation()
+    public String getFoundation()
     {
-        return super.getAttributeAsInt(FOUNDATION_ATTR_NAME);
+        return super.getAttributeAsString(FOUNDATION_ATTR_NAME);
     }
 
     /**

@@ -44,6 +44,14 @@ public class JingleIQProvider implements IQProvider
                 <PayloadTypePacketExtension>(
                                 PayloadTypePacketExtension.class));
 
+        //<rtcp-mux/> provider
+        providerManager.addExtensionProvider(
+            RtcpMuxExtension.ELEMENT_NAME,
+            RtpDescriptionPacketExtension.NAMESPACE,
+            new DefaultPacketExtensionProvider
+                <RtcpMuxExtension>(
+                                RtcpMuxExtension.class));
+
         //<parameter/> provider
         providerManager.addExtensionProvider(
             ParameterPacketExtension.ELEMENT_NAME,
@@ -60,10 +68,39 @@ public class JingleIQProvider implements IQProvider
 
         //<encryption/> provider
         providerManager.addExtensionProvider(
-            EncryptionPacketExtension.ELEMENT_NAME,
-            RtpDescriptionPacketExtension.NAMESPACE,
-            new DefaultPacketExtensionProvider
-                <EncryptionPacketExtension>(EncryptionPacketExtension.class));
+                EncryptionPacketExtension.ELEMENT_NAME,
+                RtpDescriptionPacketExtension.NAMESPACE,
+                new DefaultPacketExtensionProvider
+                        <EncryptionPacketExtension>(EncryptionPacketExtension.class));
+
+
+        //<crypto/> provider
+        providerManager.addExtensionProvider(
+                CryptoPacketExtension.ELEMENT_NAME,
+                RtpDescriptionPacketExtension.NAMESPACE,
+                new DefaultPacketExtensionProvider
+                        <CryptoPacketExtension>(CryptoPacketExtension.class));
+
+        //<streams/> provider
+        providerManager.addExtensionProvider(
+                StreamsPacketExtension.ELEMENT_NAME,
+                RtpDescriptionPacketExtension.NAMESPACE,
+                new DefaultPacketExtensionProvider
+                        <StreamsPacketExtension>(StreamsPacketExtension.class));
+
+        //<stream/> provider
+        providerManager.addExtensionProvider(
+                StreamPacketExtension.ELEMENT_NAME,
+                RtpDescriptionPacketExtension.NAMESPACE,
+                new DefaultPacketExtensionProvider
+                        <StreamPacketExtension>(StreamPacketExtension.class));
+
+        //<ssrc/> provider
+        providerManager.addExtensionProvider(
+                SsrcPacketExtension.ELEMENT_NAME,
+                RtpDescriptionPacketExtension.NAMESPACE,
+                new DefaultPacketExtensionProvider
+                        <SsrcPacketExtension>(SsrcPacketExtension.class));
 
         //<zrtp-hash/> provider
         providerManager.addExtensionProvider(
@@ -71,13 +108,6 @@ public class JingleIQProvider implements IQProvider
             ZrtpHashPacketExtension.NAMESPACE,
             new DefaultPacketExtensionProvider
                 <ZrtpHashPacketExtension>(ZrtpHashPacketExtension.class));
-
-        //<crypto/> provider
-        providerManager.addExtensionProvider(
-            CryptoPacketExtension.ELEMENT_NAME,
-            RtpDescriptionPacketExtension.NAMESPACE,
-            new DefaultPacketExtensionProvider
-                <CryptoPacketExtension>(CryptoPacketExtension.class));
 
         //ice-udp transport
         providerManager.addExtensionProvider(

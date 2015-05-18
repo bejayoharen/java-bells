@@ -73,8 +73,8 @@ public class SampleJinglePacketHandler extends JinglePacketHandler {
 	@Override
 	public JingleSession createJingleSession( String sid, JingleIQ jiq ) {
 		if( currentJingleSession != null && currentJingleSession.isActive() )
-			return new SampleJingleSession( this, null, null, sid, jiq, connection, SampleJingleSession.CallMode.DONOTANSWER );
-		else if( iceAgent != null && jingleStreamManager != null )
+			currentJingleSession.closeSession();
+		if( iceAgent != null && jingleStreamManager != null )
 			return currentJingleSession = new SampleJingleSession( this, jingleStreamManager, iceAgent, sid, jiq, connection, SampleJingleSession.CallMode.CALL );
 		else
 			return currentJingleSession = new SampleJingleSession( this, null, null, sid, jiq, connection, SampleJingleSession.CallMode.ANSWER );

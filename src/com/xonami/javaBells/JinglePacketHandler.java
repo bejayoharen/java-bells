@@ -1,9 +1,12 @@
 package com.xonami.javaBells;
 
-import java.util.HashMap;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
 
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JinglePacketFactory;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.Reason;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.PacketFilter;
@@ -18,8 +21,10 @@ import org.jivesoftware.smack.packet.Packet;
  *
  */
 public class JinglePacketHandler implements PacketListener, PacketFilter {
-	private final HashMap<String,JingleSession> jingleSessions = new HashMap<String,JingleSession>();
-	private final HashMap<String,JingleSession> deadSessions = new HashMap<String,JingleSession>();
+//	private final Map<String,JingleSession> jingleSessions = new ConcurrentHashMap<String,JingleSession>();
+    private volatile JingleSession jingleSession;
+    private volatile String sid;
+    private volatile String jid;
 	protected final XMPPConnection connection;
 	
 	public JinglePacketHandler( XMPPConnection connection ) {
@@ -32,13 +37,19 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 		JingleIQ jiq = (JingleIQ) packet;
 		
 		String sid = jiq.getSID();
-		JingleSession js = jingleSessions.get(sid);
-		if( js == null )
-			js = deadSessions.get(sid);
-		if( js == null ) {
-			js = createJingleSession( sid, jiq );
-			jingleSessions.put( sid, js );
-		}
+//		JingleSession js = jingleSessions.get(sid);
+		if( jingleSession == null ) {
+            createSession(jiq, sid);
+//			jingleSessions.put( sid, js );
+        } else if (!jingleSession.getSessionId().equals(sid)) {
+            JingleIQ sessionTerminate = JinglePacketFactory
+                    .createSessionTerminate(this.jid, jiq.getFrom(), this.sid, Reason.GONE,
+                            "New session request from " + jiq.getFrom());
+            connection.sendPacket(sessionTerminate);
+            destroySession();
+            createSession(jiq, sid);
+        }
+        JingleSession js = jingleSession;
 		switch( jiq.getAction() ) {
 		case CONTENT_ACCEPT:
 			js.handleContentAcept( jiq );
@@ -87,11 +98,26 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 			break;
 		}
 	}
-	
-	public JingleSession removeJingleSession( JingleSession session ) {
-		JingleSession ret = jingleSessions.remove( session.getSessionId() );
-		deadSessions.put( session.getSessionId(), session );
-		return ret;
+
+    private void destroySession() {
+        jingleSession.handleSessionTerminate(null);
+    }
+
+    private void createSession(final JingleIQ jiq, final String sid) {
+        jingleSession = createJingleSession( sid, jiq );
+        this.sid = sid;
+        this.jid = jiq.getTo();
+    }
+
+    public JingleSession removeJingleSession( JingleSession session ) {
+        JingleSession ret = null;
+        if (jingleSession == session) {
+            ret = jingleSession;
+            jingleSession = null;
+            this.sid = null;
+            this.jid = null;
+        }
+        return ret;
 	}
 	
 	/**
@@ -112,4 +138,8 @@ public class JinglePacketHandler implements PacketListener, PacketFilter {
 	public boolean accept(Packet packet) {
 		return packet.getClass() == JingleIQ.class;
 	}
+
+    public Collection<JingleSession> getSessions(){
+        return new HashSet<JingleSession>(Arrays.asList(jingleSession));
+    }
 }

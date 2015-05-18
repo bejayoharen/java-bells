@@ -19,10 +19,6 @@ import net.java.sip.communicator.impl.protocol.jabber.extensions.*;
 public class PayloadTypePacketExtension extends AbstractPacketExtension
 {
     /**
-     * The namespace.
-     */
-    public static final String NAMESPACE = "urn:xmpp:jingle:apps:rtp:1";
-    /**
      * The name of the "payload-type" element.
      */
     public static final String ELEMENT_NAME = "payload-type";
@@ -62,7 +58,7 @@ public class PayloadTypePacketExtension extends AbstractPacketExtension
      */
     public PayloadTypePacketExtension()
     {
-        super(NAMESPACE, ELEMENT_NAME);
+        super(null, ELEMENT_NAME);
     }
 
     /**
@@ -95,7 +91,7 @@ public class PayloadTypePacketExtension extends AbstractPacketExtension
      *
      * @param clockrate the sampling frequency in Hertz used by this encoding.
      */
-    public void setClockrate(int clockrate)
+    public void setClockrate(String clockrate)
     {
         super.setAttribute(CLOCKRATE_ATTR_NAME, clockrate);
     }
@@ -105,9 +101,9 @@ public class PayloadTypePacketExtension extends AbstractPacketExtension
      *
      * @return the sampling frequency in Hertz used by this encoding.
      */
-    public int getClockrate()
+    public String getClockrate()
     {
-        return getAttributeAsInt(CLOCKRATE_ATTR_NAME);
+        return getAttributeAsString(CLOCKRATE_ATTR_NAME);
     }
 
     /**

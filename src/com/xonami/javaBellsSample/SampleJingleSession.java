@@ -1,11 +1,14 @@
 /**
- * 
+ *
  */
 package com.xonami.javaBellsSample;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.ice4j.ice.Agent;
@@ -37,6 +40,7 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 		DONOTANSWER,
 	}
 	private IceAgent iceAgent;
+    private List<IceAgent> iceAgentKillList = new LinkedList<IceAgent>();
 	private JingleStreamManager jingleStreamManager;
 	private JingleStream jingleStream;
 	private final CallMode callMode;
@@ -73,6 +77,9 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 			jingleStream.shutdown();
 		if( iceAgent != null )
 			iceAgent.freeAgent();
+        for(IceAgent ia:iceAgentKillList){
+            ia.freeAgent();
+        }
 	}
 
 	@Override
@@ -89,15 +96,15 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 				break;
 			case ANSWER:
 				System.out.println("Accepting call!");
-				
+
 				// set the peerJid
 				peerJid = jiq.getFrom();
 
 				// okay, it matched, so accept the call and start negotiating
 				StunTurnAddress sta = StunTurnAddress.getAddress( connection );
-				
+
 				jingleStreamManager = new JingleStreamManager(CreatorEnum.initiator);
-				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseIncomingAndBuildMedia( jiq, ContentPacketExtension.SendersEnum.both );
+				List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.responder );
 
 				if( acceptedContent == null ) {
 					System.out.println("Rejecting call!");
@@ -115,7 +122,7 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 				JingleIQ iq = JinglePacketFactory.createSessionAccept(myJid, peerJid, sessionId, acceptedContent);
 				connection.sendPacket(iq);
 				state = SessionState.NEGOTIATING_TRANSPORT;
-				
+
 				iceAgent.addRemoteCandidates( jiq );
 				iceAgent.startConnectivityEstablishment();
 				active = true;
@@ -136,13 +143,15 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 			connection.sendPacket(iq);
 			closeSession(Reason.FAILED_APPLICATION);
 		} catch( Exception e ) {
-			System.out.println("An error occured. Rejecting call!");
+            System.out.println("An error occured. Rejecting call!");
+            System.out.println(e.getMessage());
+            System.out.println(e.getStackTrace());
 			JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
 			connection.sendPacket(iq);
 			closeSession(Reason.FAILED_APPLICATION);
 		}
 	}
-	
+
 	@Override
 	public void handleSessionInfo(JingleIQ jiq) {
 		if( !check(jiq) )
@@ -153,26 +162,26 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 		}
 		unsupportedInfo( jiq );
 	}
-	
+
 	@Override
 	public void handleSessionAccept(JingleIQ jiq) {
 		switch( callMode ) {
 		case CALL:
 //			System.out.println( "====:: Got session accept from " + jiq + " :: " + peerJid );
-			
+
 			if( peerJid == null )
 				peerJid = jiq.getFrom();
-			
+
 			//acknowledge
 			if( !checkAndAck(jiq) )
 				return;
-			
+
 //			System.out.println( "====:: Processing accept" );
 
 			state = SessionState.NEGOTIATING_TRANSPORT;
-			
+
 			try {
-				if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both ) )
+				if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.initiator ) )
 					throw new IOException( "No incoming streams detected." );
 //				System.out.println( "====:: Processing accept a" );
 				iceAgent.addRemoteCandidates( jiq );
@@ -200,24 +209,24 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 			break;
 		}
 	}
-	
+
 	@Override
 	public void handleTransportInfo(JingleIQ jiq) {
 		switch( callMode ) {
 		case CALL:
 //			System.out.println( "====:: Got transport-info from " + jiq + " :: " + peerJid );
-			
+
 			if( peerJid == null )
 				peerJid = jiq.getFrom();
-			
+
 			//acknowledge
 			if( !checkAndAck(jiq) )
 				return;
-			
+
 //			System.out.println( "====:: Processing transport-info..." );
 
 			state = SessionState.NEGOTIATING_TRANSPORT;
-			
+
 			try {
 //				if( null == jingleStreamManager.parseIncomingAndBuildMedia( jiq, SendersEnum.both ) )
 //					throw new IOException( "No incoming streams detected." );
@@ -271,7 +280,8 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 				for( String s : iceAgent.getStreamNames() ) {
 					System.out.println( "For Stream : " + s );
 					jingleStream = jingleStreamManager.startStream(s, iceAgent);
-					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
+                    jingleStream.startAudio(jingleStreamManager.getDefaultAudioDevice());
+//					jingleStream.quickShow(jingleStreamManager.getDefaultAudioDevice());
 				}
 			} catch (IOException ioe) {
 				System.out.println( "IOException." );
@@ -287,7 +297,62 @@ public class SampleJingleSession extends DefaultJingleSession implements Propert
 		}
 	}
 
+    public void handleContentAdd(JingleIQ jiq) {
+        checkAndAck(jiq);
+        try {
+            switch (callMode) {
+                case ANSWER:
+
+                    System.out.println("Content Add!");
+
+                    // set the peerJid
+                    peerJid = jiq.getFrom();
+
+                    // okay, it matched, so accept the call and start negotiating
+//                    StunTurnAddress sta = StunTurnAddress.getAddress(connection);
+
+//                    jingleStreamManager = new JingleStreamManager(CreatorEnum.initiator);
+                    List<ContentPacketExtension> acceptedContent = jingleStreamManager.parseIncomingAndBuildMedia(jiq, SendersEnum.responder);
+
+                    if (acceptedContent == null) {
+                        System.out.println("Rejecting content add!");
+                        // it didn't match. Reject the call.
+                        closeSession(Reason.INCOMPATIBLE_PARAMETERS);
+                        return;
+                    }
+                    if(iceAgent.getState() == IceProcessingState.COMPLETED || iceAgent.getState() == IceProcessingState.TERMINATED){
+                        System.out.println("Media Stream Names: " + jingleStreamManager.getMediaNames());
+                        iceAgent.createStreams(jingleStreamManager.getMediaNames());
+
+                        iceAgent.addAgentStateChangeListener(this);
+                        iceAgent.addLocalCandidateToContents(acceptedContent);
+
+                        JingleIQ iq = JinglePacketFactory.createContentAccept(myJid, peerJid, sessionId, acceptedContent);
+                        connection.sendPacket(iq);
+                        state = SessionState.NEGOTIATING_TRANSPORT;
+
+                        iceAgent.addRemoteCandidates(jiq);
+                        iceAgent.startConnectivityEstablishment();
+                        active = true;
+                    } else {
+                        JingleIQ iq = JinglePacketFactory.createContentReject(myJid, peerJid, sessionId, acceptedContent);
+                        connection.sendPacket(iq);
+                    }
+                    break;
+            }
+        } catch (Exception e) {
+            System.out.println("An error occured. Rejecting call!");
+            JingleIQ iq = JinglePacketFactory.createCancel(myJid, peerJid, sessionId);
+            connection.sendPacket(iq);
+            closeSession(Reason.FAILED_APPLICATION);
+        }
+    }
+
 	public boolean isActive() {
 		return active;
 	}
+
+    public void closeSession(){
+        closeSession(Reason.GONE);
+    }
 }

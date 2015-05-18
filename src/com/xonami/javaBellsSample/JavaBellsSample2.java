@@ -141,7 +141,7 @@ public class JavaBellsSample2 {
 						mainThread.notify();
 					}
 					mainThread.join();
-					break;
+				 	break;
 				} catch (InterruptedException e) {}
 	}
 	
@@ -178,6 +178,8 @@ public class JavaBellsSample2 {
 					// this ensures that other software, such as Jitsi, knows that we support
 					// ice and so on
 					//ServiceDiscoveryManager.setIdentityName("Java Bells");
+                    ServiceDiscoveryManager.setIdentityName("usbcamera");
+                    ServiceDiscoveryManager.setIdentityType("camera");
 					ServiceDiscoveryManager disco = ServiceDiscoveryManager.getInstanceFor(connection);
 					EntityCapsManager ecm = EntityCapsManager.getInstanceFor(connection);
 					
