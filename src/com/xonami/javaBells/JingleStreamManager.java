@@ -7,12 +7,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.JingleIQ;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ParameterPacketExtension;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.PayloadTypePacketExtension;
-import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.RtpDescriptionPacketExtension;
+import java.util.concurrent.ConcurrentHashMap;
+
+import ch.imvs.sdes4j.srtp.SrtpCryptoAttribute;
+import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.*;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.CreatorEnum;
 import net.java.sip.communicator.impl.protocol.jabber.extensions.jingle.ContentPacketExtension.SendersEnum;
 
@@ -21,29 +19,23 @@ import org.ice4j.ice.CandidatePair;
 import org.ice4j.ice.Component;
 import org.ice4j.ice.IceMediaStream;
 import org.jitsi.service.libjitsi.LibJitsi;
-import org.jitsi.service.neomedia.DefaultStreamConnector;
-import org.jitsi.service.neomedia.MediaDirection;
-import org.jitsi.service.neomedia.MediaService;
-import org.jitsi.service.neomedia.MediaStream;
-import org.jitsi.service.neomedia.MediaStreamTarget;
-import org.jitsi.service.neomedia.MediaType;
-import org.jitsi.service.neomedia.MediaUseCase;
-import org.jitsi.service.neomedia.StreamConnector;
+import org.jitsi.service.neomedia.*;
 import org.jitsi.service.neomedia.device.MediaDevice;
 import org.jitsi.service.neomedia.format.AudioMediaFormat;
 import org.jitsi.service.neomedia.format.MediaFormat;
 
 public class JingleStreamManager {
 	private static final DynamicPayloadTypeRegistry dynamicPayloadTypes = new DynamicPayloadTypeRegistry();
-	
+
 	private final CreatorEnum creator;
 	private SendersEnum senders;
-	
-	private final TreeMap<String,MediaDevice> devices = new TreeMap<String,MediaDevice>();
-	private final TreeMap<String,JingleStream> jingleStreams = new TreeMap<String,JingleStream>();
-	private final TreeMap<String,MediaFormat> streamNameToMediaFormats = new TreeMap<String,MediaFormat>();
-	private final TreeMap<String,Byte> streamNameToPayloadTypeId = new TreeMap<String,Byte>();
-	
+
+	private final Map<String,MediaDevice> devices = new ConcurrentHashMap<String,MediaDevice>();
+	private final Map<String,JingleStream> jingleStreams = new ConcurrentHashMap<String,JingleStream>();
+	private final Map<String,MediaFormat> streamNameToMediaFormats = new ConcurrentHashMap<String,MediaFormat>();
+	private final Map<String,Byte> streamNameToPayloadTypeId = new ConcurrentHashMap<String,Byte>();
+    private final Map<String, SDesControl> streamNameToSDesControl = new ConcurrentHashMap<String, SDesControl>();
+
 	public JingleStreamManager(CreatorEnum creator) {
 		this.creator = creator;
 	}
@@ -51,24 +43,24 @@ public class JingleStreamManager {
 	public Set<String> getMediaNames() {
 		return Collections.unmodifiableSet( devices.keySet() );
 	}
-	
+
 	public boolean addDefaultMedia( MediaType mediaType, String name ) {
 		MediaService mediaService = LibJitsi.getMediaService();
 		MediaDevice dev = mediaService.getDefaultDevice(mediaType, MediaUseCase.CALL);
-		
+
 		if( dev == null )
 			return false;
-		
+
 		devices.put(name, dev);
 		return true;
 	}
-	
+
 	public MediaDevice getDefaultAudioDevice() {
 		MediaService mediaService = LibJitsi.getMediaService();
 		MediaDevice dev = mediaService.getDefaultDevice(MediaType.AUDIO, MediaUseCase.CALL);
 		return dev;
 	}
-	
+
 	public List<ContentPacketExtension> createContentList(SendersEnum senders) {
 		this.senders = senders;
 		List<ContentPacketExtension> contentList = new ArrayList<ContentPacketExtension>();
@@ -107,14 +99,14 @@ public class JingleStreamManager {
 
 		return content;
 	}
-	
+
 	public JingleStream startStream(String name, IceAgent iceAgent ) throws IOException {
 		if( streamNameToMediaFormats.size() == 0 ) {
 			// media has not been negotiated. This seems to happen with jitsi.
 			// we will assume our requested formats are acceptable.
 			parseIncomingAndBuildMedia( createContentList( senders ), senders );
 		}
-		
+
         IceMediaStream stream = iceAgent.getAgent().getStream(name);
         MediaFormat format = streamNameToMediaFormats.get(name);
         Byte payloadTypeId = streamNameToPayloadTypeId.get(name);
@@ -122,7 +114,7 @@ public class JingleStreamManager {
         	throw new IOException("Stream \"" + name + "\" not found.");
         Component rtpComponent = stream.getComponent(org.ice4j.ice.Component.RTP);
         Component rtcpComponent = stream.getComponent(org.ice4j.ice.Component.RTCP);
-        
+
         if( rtpComponent == null )
         	throw new IOException("RTP component not found.");
         if( rtcpComponent == null )
@@ -133,7 +125,7 @@ public class JingleStreamManager {
 
 //        System.out.println( "RTP : L " + rtpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtpPair.getRemoteCandidate().getTransportAddress() + " R " );
 //        System.out.println( "RTCP: L " + rtcpPair.getLocalCandidate().getDatagramSocket().getLocalPort() + " <-> " + rtcpPair.getRemoteCandidate().getTransportAddress() + " R " );
-        
+
         return startStream( name,
         		payloadTypeId,
         		format,
@@ -142,15 +134,17 @@ public class JingleStreamManager {
         		rtpPair.getLocalCandidate().getDatagramSocket(),
         		rtcpPair.getLocalCandidate().getDatagramSocket());
 	}
-	
+
 	public JingleStream startStream( String name, byte payloadTypeId, MediaFormat format, TransportAddress remoteRtpAddress, TransportAddress remoteRtcpAddress, DatagramSocket rtpDatagramSocket, DatagramSocket rtcpDatagramSocket ) throws IOException {
 		MediaDevice dev = devices.get(name);
-		
-		MediaService mediaService = LibJitsi.getMediaService();
-		
-        MediaStream mediaStream = mediaService.createMediaStream(dev);
 
-        mediaStream.setDirection(MediaDirection.SENDRECV);
+		MediaService mediaService = LibJitsi.getMediaService();
+
+        MediaStream mediaStream = mediaService.createMediaStream(
+                new DefaultStreamConnector(rtpDatagramSocket, rtcpDatagramSocket), dev,
+                streamNameToSDesControl.get(name));
+
+        mediaStream.setDirection(MediaDirection.SENDONLY);
 
         /*
          * The MediaFormat instances which do not have a static RTP
@@ -162,7 +156,7 @@ public class JingleStreamManager {
                     payloadTypeId,
                     format);
         }
-        
+
 //        System.out.println( "++++++++++++++++++++++" );
 //        System.out.println( "++++++++++++++++++++++" );
 //        System.out.println( "++++++++++++++++++++++" );
@@ -175,21 +169,17 @@ public class JingleStreamManager {
 
         mediaStream.setFormat(format);
 
-        StreamConnector connector = new DefaultStreamConnector( rtpDatagramSocket, rtcpDatagramSocket );
-
-        mediaStream.setConnector(connector);
-
         mediaStream.setTarget( new MediaStreamTarget( remoteRtpAddress, remoteRtcpAddress ) );
 
         mediaStream.setName(name);
-        
+
         mediaStream.start();
-        
+
         JingleStream js = new JingleStream( name, mediaStream, this );
         jingleStreams.put( name, js );
         return js;
 	}
-	
+
     public static PayloadTypePacketExtension formatToPayloadType(
             MediaFormat format,
             DynamicPayloadTypeRegistry ptRegistry,
@@ -212,7 +202,7 @@ public class JingleStreamManager {
         if(format instanceof AudioMediaFormat)
             ptExt.setChannels(((AudioMediaFormat)format).getChannels());
 
-        ptExt.setClockrate((int)format.getClockRate());
+        ptExt.setClockrate(String.valueOf(Double.valueOf(format.getClockRate()).intValue()));
 
         /*
          * Add the format parameters and the advanced attributes (as parameter
@@ -237,7 +227,7 @@ public class JingleStreamManager {
 
         return ptExt;
     }
-    
+
     /** Parses the incoming session-initiate or session-accept jingle iqs and
      * and sets up a local stream as required by building the required media.
      * Returns a new list of ContentPacketExtention representing the content
@@ -246,60 +236,68 @@ public class JingleStreamManager {
      * @param senders who is sending and receiving media?
      * @throws IOException if the packets are not correctly parsed. */
 	public List<ContentPacketExtension> parseIncomingAndBuildMedia(JingleIQ jiq, SendersEnum senders) throws IOException {
-		return parseIncomingAndBuildMedia(jiq.getContentList(),senders);
+		return parseIncomingAndBuildMedia(jiq,senders, true, true);
 	}
-	public List<ContentPacketExtension> parseIncomingAndBuildMedia(List<ContentPacketExtension> cpes, SendersEnum senders) throws IOException {
+    public List<ContentPacketExtension> parseIncomingAndBuildMedia(JingleIQ jiq, SendersEnum senders, boolean audio, boolean video) throws IOException {
+        return parseIncomingAndBuildMedia(jiq.getContentList(),senders, audio, video);
+    }
+    public List<ContentPacketExtension> parseIncomingAndBuildMedia(List<ContentPacketExtension> cpes, SendersEnum senders) throws IOException {
+        return parseIncomingAndBuildMedia(cpes, senders, true, true);
+    }
+	public List<ContentPacketExtension> parseIncomingAndBuildMedia(List<ContentPacketExtension> cpes, SendersEnum senders, boolean audio, boolean video) throws IOException {
 		this.senders = senders;
 		String name = null;
 		String toclean = null;
 		List<ContentPacketExtension> ret = new ArrayList<ContentPacketExtension>();
-		try {
-			for( ContentPacketExtension cpe : cpes ) {
-				toclean = name = cpe.getName();
-				if( name == null )
-					throw new IOException();
-				
-//				SendersEnum senders = cpe.getSenders();
-//				CreatorEnum creator = cpe.getCreator();
-				String media = null;
-				
-				List<RtpDescriptionPacketExtension> descriptions = cpe.getChildExtensionsOfType(RtpDescriptionPacketExtension.class);
-				
-				for( RtpDescriptionPacketExtension description : descriptions ) {
-					System.out.println( description );
-					media = description.getMedia();
-					if( "audio".equals(media) ) {
-						if( !addDefaultMedia( MediaType.AUDIO, name ) )
-							throw new IOException( "Could not create audio device" );
-					} else if( "video".equals(media) ) {
-						if( !addDefaultMedia( MediaType.VIDEO, name ) )
-							throw new IOException( "Could not create video device" );
-					} else {
-						throw new IOException( "Unknown media type: " + media );
-					}
-					List<PayloadTypePacketExtension> payloadTypes = description.getPayloadTypes();
-					for( PayloadTypePacketExtension payloadType : payloadTypes ) {
-						MediaFormat mf = getSupportedFormat( name, payloadType );
-						if( mf == null )
-							continue; //no match
-						ret.add( createContentPacketExtention( senders, name, devices.get(name), mf, payloadType.getID() ) );
-						toclean = null;
-						streamNameToMediaFormats.put( name, mf );
-						streamNameToPayloadTypeId.put( name, (byte) payloadType.getID() );
-						break; //stop on first match
-					}
-				}
-				if( media == null )
-					throw new IOException();
-			}
-			if( ret.size() == 0 )
+            for (ContentPacketExtension cpe : cpes) {
+                try {
+                    toclean = name = cpe.getName();
+                    if (name == null)
+                        throw new IOException();
+
+                    String media = null;
+
+                    List<RtpDescriptionPacketExtension> descriptions = cpe.getChildExtensionsOfType(RtpDescriptionPacketExtension.class);
+
+                    for (RtpDescriptionPacketExtension description : descriptions) {
+                        media = description.getMedia();
+                        boolean mediaAdded = false;
+                        if (audio && "audio".equals(media)) {
+                            mediaAdded = addDefaultMedia(MediaType.AUDIO, name);
+                        } else if (video && "video".equals(media)) {
+                            mediaAdded = addDefaultMedia(MediaType.VIDEO, name);
+                        }
+                        if (mediaAdded) {
+                            List<PayloadTypePacketExtension> payloadTypes = description.getPayloadTypes();
+                            for (PayloadTypePacketExtension payloadType : payloadTypes) {
+                                MediaFormat mf = getSupportedFormat(name, payloadType);
+                                if (mf == null)
+                                    continue; //no match
+                                final ContentPacketExtension cpeResponse =
+                                        createContentPacketExtention(senders, name, devices.get(name), mf,
+                                                payloadType.getID());
+                                addEncryption(name, description,
+                                        (RtpDescriptionPacketExtension) cpeResponse.getChildExtensions().get(0));
+                                ret.add(cpeResponse);
+                                toclean = null;
+                                streamNameToMediaFormats.put(name, mf);
+                                streamNameToPayloadTypeId.put(name, (byte) payloadType.getID());
+                                break; //stop on first match
+                            }
+                        }
+                    }
+                    if (media == null)
+                        throw new IOException();
+                } finally {
+                    if (toclean != null)
+                        devices.remove(toclean);
+                }
+            }
+            if( ret.size() == 0 )
 				return null;
 			return ret;
-		} finally {
-			if( toclean != null )
-				devices.remove(toclean);
-		}
 	}
+
 	private MediaFormat getSupportedFormat( String name, PayloadTypePacketExtension payloadType ) {
 		MediaDevice dev = devices.get(name);
         MediaType mediaType = dev.getMediaType();
@@ -310,11 +308,46 @@ public class JingleStreamManager {
 //					&& mf.getEncoding().equals(payloadType.getName()) ) {
 				//FIXME: we should probably check advanced attributes and format parameters, but my guess is
 				// that in most cases we can adapt.
-            if (mf.matches(mediaType, payloadType.getName(), payloadType.getClockrate(), payloadType.getChannels(), null)) {//formatParameters is not used by default 
+            final String clockrate = payloadType.getClockrate();
+            final String[] split = clockrate.split("/");
+            if(split.length > 0){
+            if (mf.matches(mediaType, payloadType.getName(), Double.valueOf(split[0]), payloadType.getChannels(), null)) {//formatParameters is not used by default
 				return mf;
-			}
+			}}
 		}
 		return null;
 	}
 
+    public void closeStreams() {
+        for (JingleStream jingleStream : jingleStreams.values()) {
+            jingleStream.shutdown();
+        }
+    }
+
+    private RtpDescriptionPacketExtension addEncryption(String streamName, RtpDescriptionPacketExtension offer,
+                                                        RtpDescriptionPacketExtension response) {
+        final EncryptionPacketExtension encryptionOffer = offer.getEncryption();
+        if (encryptionOffer != null) {
+            final SDesControl sDesControl =
+                    (SDesControl) LibJitsi.getMediaService().createSrtpControl(SrtpControlType.SDES);
+//            sDesControl.getInitiatorCryptoAttributes();
+            List<CryptoPacketExtension> cryptoPacketExtensions
+                    = encryptionOffer.getCryptoList();
+            List<SrtpCryptoAttribute> peerAttributes
+                    = new ArrayList<SrtpCryptoAttribute>(cryptoPacketExtensions.size());
+
+            for (CryptoPacketExtension cpe : cryptoPacketExtensions) {
+                peerAttributes.add(cpe.toSrtpCryptoAttribute());
+            }
+            final SrtpCryptoAttribute srtpCryptoAttribute = sDesControl.responderSelectAttribute(peerAttributes);
+            if (srtpCryptoAttribute != null) {
+                final EncryptionPacketExtension encryptionResponse = new EncryptionPacketExtension();
+                encryptionResponse.addChildExtension(new CryptoPacketExtension(srtpCryptoAttribute));
+                response.setEncryption(encryptionResponse);
+                response.setAttribute("profile", "RTP/SAVPF");
+                streamNameToSDesControl.put(streamName, sDesControl);
+            }
+        }
+        return response;
+    }
 }

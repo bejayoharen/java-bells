@@ -103,6 +103,7 @@ public class JingleStream {
 	}
 
 	public void shutdown() {
+//        mediaStream.stop();
 		mediaStream.close();
 	}
 }

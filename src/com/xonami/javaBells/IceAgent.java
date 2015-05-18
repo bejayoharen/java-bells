@@ -27,6 +27,7 @@ import org.ice4j.ice.NominationStrategy;
 import org.ice4j.ice.RemoteCandidate;
 import org.ice4j.ice.harvest.StunCandidateHarvester;
 import org.ice4j.ice.harvest.TurnCandidateHarvester;
+import org.ice4j.security.LongTermCredential;
 //import org.ice4j.security.LongTermCredential;
 
 
@@ -54,7 +55,7 @@ public class IceAgent {
 	
 	static final int MIN_STREAM_PORT = 5000;
 	static final int MAX_STREAM_PORT = 9000;
-	static int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
+	static volatile int streamPort = (int) ( random.nextFloat() * ( MAX_STREAM_PORT - MIN_STREAM_PORT ) + MIN_STREAM_PORT );
 
 	private final Agent agent;
 	
@@ -75,6 +76,25 @@ public class IceAgent {
 			for( TransportAddress ta : sta.turnAddresses )
 				agent.addCandidateHarvester(new TurnCandidateHarvester(ta) );
 	}
+
+	public IceAgent(final boolean controlling,
+					final TransportAddress[] stunAddresses, final TransportAddress[] turnAddresses,
+					final LongTermCredential ltCreds) {
+		this.agent = new Agent();
+        agent.setControlling(controlling);
+        if( controlling )
+            agent.setNominationStrategy(NominationStrategy.NOMINATE_HIGHEST_PRIO);
+
+        //stun and turn
+        if (stunAddresses != null)
+            for( TransportAddress ta : stunAddresses )
+                agent.addCandidateHarvester(new StunCandidateHarvester(ta) );
+
+        if (turnAddresses != null)
+            for( TransportAddress ta : turnAddresses )
+                agent.addCandidateHarvester(new TurnCandidateHarvester(ta, ltCreds) );
+
+    }
 	public void createStreams( Collection<String> streamnames ) throws IOException {
 		for( String s : streamnames ) {
 			createStream( s );
@@ -98,6 +118,10 @@ public class IceAgent {
 	public List<String> getStreamNames() {
 		return agent.getStreamNames();
 	}
+    public List<IceMediaStream> getStreams() {
+        return agent.getStreams();
+    }
+    public void removeStream(IceMediaStream stream) {agent.removeStream(stream);}
 	public void freeAgent() {
 		agent.free();
 	}
@@ -109,7 +133,6 @@ public class IceAgent {
 				IceMediaStream ims = agent.getStream(name);
 				if (ims != null) {
 					for (IceUdpTransportPacketExtension tpe : contentpe.getChildExtensionsOfType(IceUdpTransportPacketExtension.class)) {
-						System.out.println( "\t" + tpe );
 						if (tpe.getPassword() != null)
 							ims.setRemotePassword(tpe.getPassword());
 						if (tpe.getUfrag() != null)
@@ -149,7 +172,7 @@ public class IceAgent {
 								RemoteCandidate rc = new RemoteCandidate( ta,
 										component,
 										convertType(cpe.getType()),
-										Integer.toString(cpe.getFoundation()),
+										cpe.getFoundation(),
 										cpe.getPriority(),
 										relatedCandidate);
 								component.addRemoteCandidate(rc);
@@ -184,50 +207,50 @@ public class IceAgent {
 			cpe.addChildExtension(ext);
 		}
 	}
-	public IceUdpTransportPacketExtension getLocalCandidatePacketExtensionForStream( String streamName ) {
-		IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
-		transport.setPassword( agent.getLocalPassword() );
-		transport.setUfrag( agent.getLocalUfrag() );
-
-		try {
-			IceMediaStream ims = agent.getStream(streamName);
-			if( ims == null )
-				return null;
-			
-			for( Component c : ims.getComponents() ) {
-				for( Candidate<?> can : c.getLocalCandidates() ) {
-					CandidatePacketExtension candidate = new CandidatePacketExtension();
-					candidate.setComponent(c.getComponentID());
-					candidate.setFoundation(Integer.parseInt(can.getFoundation()));
-					candidate.setGeneration(agent.getGeneration());
-					candidate.setID(nextCandidateId());
-					candidate.setNetwork(0); //FIXME: we need to identify the network card properly.
-					TransportAddress ta = can.getTransportAddress();
-					candidate.setIP( ta.getHostAddress() );
-					candidate.setPort( ta.getPort() );
-					candidate.setPriority(can.getPriority());
-					candidate.setProtocol(can.getTransport().toString());
-					if( can.getRelatedAddress() != null ) {
-						candidate.setRelAddr(can.getRelatedAddress().getHostAddress());
-						candidate.setRelPort(can.getRelatedAddress().getPort());
-					}
-					candidate.setType(convertType(can.getType()));
-					
-					transport.addCandidate(candidate);
-				}
-			}
-		} catch( Exception e ) {
-			e.printStackTrace();
-			System.exit(0);
-		}
-		return transport;
-	}
-	
 	private CandidateType convertType(org.ice4j.ice.CandidateType type) {
 		String ts = type.toString();
 		return CandidateType.valueOf(ts);
 	}
-	private org.ice4j.ice.CandidateType convertType(CandidateType type) {
+
+    public IceUdpTransportPacketExtension getLocalCandidatePacketExtensionForStream( String streamName ) {
+        IceUdpTransportPacketExtension transport = new IceUdpTransportPacketExtension();
+        transport.setPassword( agent.getLocalPassword() );
+        transport.setUfrag( agent.getLocalUfrag() );
+
+        try {
+            IceMediaStream ims = agent.getStream(streamName);
+            if( ims == null )
+                return null;
+
+            for( Component c : ims.getComponents() ) {
+                for( Candidate<?> can : c.getLocalCandidates() ) {
+                    CandidatePacketExtension candidate = new CandidatePacketExtension();
+                    candidate.setComponent(c.getComponentID());
+                    candidate.setFoundation(can.getFoundation());
+                    candidate.setGeneration(agent.getGeneration());
+                    candidate.setID(nextCandidateId());
+                    candidate.setNetwork(0); //FIXME: we need to identify the network card properly.
+                    TransportAddress ta = can.getTransportAddress();
+                    candidate.setIP( ta.getHostAddress() );
+                    candidate.setPort( ta.getPort() );
+                    candidate.setPriority(can.getPriority());
+                    candidate.setProtocol(can.getTransport().toString());
+                    if( can.getRelatedAddress() != null ) {
+                        candidate.setRelAddr(can.getRelatedAddress().getHostAddress());
+                        candidate.setRelPort(can.getRelatedAddress().getPort());
+                    }
+                    candidate.setType(convertType(can.getType()));
+
+                    transport.addCandidate(candidate);
+                }
+            }
+        } catch( Exception e ) {
+            e.printStackTrace();
+            System.exit(0);
+        }
+        return transport;
+    }
+    private org.ice4j.ice.CandidateType convertType(CandidateType type) {
 		String ts = type.toString();
 		return org.ice4j.ice.CandidateType.parse(ts);
 	}

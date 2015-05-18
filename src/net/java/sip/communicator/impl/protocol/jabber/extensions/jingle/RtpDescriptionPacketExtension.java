@@ -18,7 +18,7 @@ import org.jivesoftware.smack.packet.*;
  * @author Emil Ivov
  */
 public class RtpDescriptionPacketExtension
-    extends AbstractPacketExtension
+        extends AbstractPacketExtension
 {
     /**
      * The name space for RTP description elements.
@@ -44,7 +44,7 @@ public class RtpDescriptionPacketExtension
      * The list of payload types that this description element contains.
      */
     private final List<PayloadTypePacketExtension> payloadTypes
-                                = new ArrayList<PayloadTypePacketExtension>();
+            = new ArrayList<PayloadTypePacketExtension>();
 
     /**
      * An optional encryption element that contains encryption parameters for
@@ -63,7 +63,7 @@ public class RtpDescriptionPacketExtension
      * negotiating RTP extension headers as per RFC 5282.
      */
     private List<RTPHdrExtPacketExtension> extmapList
-                                    = new ArrayList<RTPHdrExtPacketExtension>();
+            = new ArrayList<RTPHdrExtPacketExtension>();
 
     /**
      * The combined list of all child elements that this extension contains.
